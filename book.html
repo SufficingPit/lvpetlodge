@@ -56,8 +56,8 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .mh button:disabled{opacity:.25}
 .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .dow{text-align:center;font-size:12px;font-weight:600;color:var(--mut);padding:4px 0}
-.day{position:relative;min-width:0;padding:0;aspect-ratio:1/1;min-height:42px;border:0;border-radius:10px;background:var(--card);font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:var(--shadow)}
-.day small{font-size:10px;font-weight:600;color:var(--mut);line-height:1;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip}
+.day{position:relative;min-width:0;padding:3px 0;min-height:50px;border:0;border-radius:10px;background:var(--card);font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:var(--shadow)}
+.day small{font-size:9.5px;font-weight:600;color:var(--mut);line-height:1;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip}
 .day.no{background:var(--off);color:var(--mut);box-shadow:none}
 .day.closed{background:repeating-linear-gradient(135deg,var(--off),var(--off) 5px,transparent 5px,transparent 9px);color:var(--mut);box-shadow:none}
 .day.in{background:var(--pri-soft);border-radius:0}
@@ -265,11 +265,11 @@ function monthCal(){
     if(x?.closed) cls.push('closed'); else if(early || (open===false && !pickable)) cls.push('no');
     if(F.start && F.end && d > F.start && d < F.end) cls.push('in');
     if(d===F.start) cls.push('start'); if(d===F.end) cls.push('end');
-    const n2 = need(), low = x && !x.closed && !early ? [n2.d ? ['dog', x.dogs] : null, n2.c ? ['cat', x.cats] : null].filter(Boolean).sort((a, b) => a[1] - b[1])[0] : null;
-    const left = low ? low[1] : null;
+    // open days show what's left of each kind they need ("12 dog", "2 cat")
+    const n2 = need(), counts = x && !x.closed && !early && open!==false ? [n2.d ? x.dogs+' dog' : null, n2.c ? x.cats+' cat' : null].filter(Boolean) : [];
     const usable = pickable || (!early && open!==false && !x?.closed);
     cells.push(h('button',{class:cls.join(' '), disabled:!usable || null, 'aria-label':wmd(d)+(x?.closed ? ', closed' : open===false ? ', full' : ''), onclick:()=>tapDay(d)},
-      i, x?.closed ? h('small',{},'closed') : (!early && open===false) ? h('small',{},'full') : (left!=null && left <= 3 && !early) ? h('small',{}, left+' '+low[0]) : null));
+      i, x?.closed ? h('small',{},'closed') : (!early && open===false) ? h('small',{},'full') : counts.map(t => h('small',{}, t))));
   }
   return [h('div',{class:'mh'},
       h('button',{'aria-label':'Previous month', disabled:base <= minMonth || null, onclick:()=>go(-1)}, '‹'),
@@ -279,7 +279,8 @@ function monthCal(){
     h('div',{class:'key'},
       h('span',{}, h('span',{class:'sw', style:'background:var(--card);border:1px solid var(--field)'}), 'Open'),
       h('span',{}, h('span',{class:'sw', style:'background:var(--off)'}), 'Full or not bookable'),
-      h('span',{}, h('span',{class:'sw', style:'background:repeating-linear-gradient(135deg,var(--field),var(--field) 3px,transparent 3px,transparent 6px)'}), 'Closed'))];
+      h('span',{}, h('span',{class:'sw', style:'background:repeating-linear-gradient(135deg,var(--field),var(--field) 3px,transparent 3px,transparent 6px)'}), 'Closed')),
+    h('p',{class:'mut', style:'margin:8px 0 0;font-size:13px'}, 'The small numbers are how many '+[need().d && 'dog kennels', need().c && 'cat condos'].filter(Boolean).join(' and ')+' are still open that night.')];
 }
 const loading = {};
 
