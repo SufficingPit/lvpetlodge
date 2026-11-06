@@ -92,8 +92,8 @@ const BIZ = 'Little Village Pet Lodge', PHONE = '+13082332652', PHONE_TEXT = '(3
 // Sending goes through the request-spot server function, which runs the spam check first.
 // Its gate wants the project's public (legacy) anon key; like the publishable key, it's safe in a page.
 const SEND_URL = SUPA.url+'/functions/v1/request-spot', SEND_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2hkbXRlZGVkY3hzam5scXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5NzAzNTIsImV4cCI6MjEwOTU0NjM1Mn0.MAwoo-9B3v6M5GNUkEXQpnnmB-DMY3fgSD6r9RDod10';
-// Cloudflare Turnstile site key (public). 1x00000000000000000000AA is Cloudflare's test key: replace with the real one.
-const TURNSTILE_SITE = '1x00000000000000000000AA';
+// Cloudflare Turnstile site key (public; the secret one lives only in Supabase as TURNSTILE_SECRET)
+const TURNSTILE_SITE = '0x4AAAAAAF25ETdEUOtMMctP';
 let tsId = null, tsWait = null;
 function humanCheck(){
   return new Promise((ok, no) => {
