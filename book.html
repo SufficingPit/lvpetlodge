@@ -243,7 +243,7 @@ async function send(){
 function header(sub){ return [h('a',{class:'biz', href:'./', style:'text-decoration:none'}, '‹ '+BIZ), h('h1',{}, sub)]; }
 const callUs = () => h('div',{class:'two', style:'margin-top:10px'}, h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)', href:'tel:'+PHONE}, 'Call '+PHONE_TEXT), h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)', href:'sms:'+PHONE}, 'Text us'));
 function formView(){
-  if(!INFO.on) return [header('Request a stay'), h('div',{class:'warn'}, 'Online requests aren’t open yet. Please call or text us to book.'), callUs()];
+  if(!INFO.on) return [header('Request a stay'), h('div',{class:'warn'}, INFO.offNote || 'Online requests are paused right now. Please call or text us to book.'), callUs()];
   const n = need(), nights = F.start && F.end ? nightsBetween(F.start, F.end) : 0;
   const room = CHECK && CHECK.ok && [n.d && plural(CHECK.dogs, 'dog spot'), n.c && plural(CHECK.cats, 'cat spot')].filter(Boolean).join(' and ');
   const enough = CHECK && CHECK.ok && CHECK.dogs >= n.d && CHECK.cats >= n.c;
