@@ -97,6 +97,8 @@ section.tint{background:var(--soft)}
 .contact .row svg{width:22px;height:22px;color:var(--pri);flex:none}
 .contact .row small{display:block;color:var(--mut);font-size:14px}
 .map{border-radius:16px;background:#fff;border:1px solid var(--line)}
+.notice{background:var(--pink);color:#fff;font-weight:700;text-align:center;padding:10px 0}
+.notice .wrap{white-space:pre-wrap}
 footer{padding:32px 0 48px;color:var(--mut);font-size:15px;text-align:center}
 footer a{color:var(--mut)}
 </style>
@@ -112,16 +114,17 @@ footer a{color:var(--mut)}
 </div></header>
 
 <main id="top">
+<div class="notice" id="notice" hidden><div class="wrap"></div></div>
 <div class="hero"><div class="wrap hw">
   <div>
-    <h1>Lodging for your pets while you’re <span>away from home</span></h1>
-    <p class="lead">A safe, friendly place in the country north of Funk, Nebraska, for dogs, cats, and most any small pet with fur, feathers or scales.</p>
+    <h1 id="headline"></h1>
+    <p class="lead" id="intro"></p>
     <div class="acts">
       <a class="btn" href="book.html">Check open spots</a>
-      <a class="btn alt" href="tel:+13082332652"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>(308) 233-2652</a>
+      <a class="btn alt telLink" id="heroPhone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span></span></a>
     </div>
   </div>
-  <div class="pic"><img src="img/g8.jpg" alt="Clio, a happy Australian Shepherd, sitting in the kennel room" width="1600" height="1200"><span class="tag">Hi, I’m Clio!</span></div>
+  <div class="pic"><img id="heroImg" alt="" width="1600" height="1200"><span class="tag" id="heroTag"></span></div>
 </div>
 <div class="wrap">
   <div class="hours" id="hours">
@@ -133,24 +136,9 @@ footer a{color:var(--mut)}
 
 <section id="boarding"><div class="wrap">
   <h2>Boarding</h2>
-  <p class="mut">Enjoy your vacation or time away from home without worrying about your fur baby.</p>
-  <div class="grid3">
-    <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="5.5" r="2.2"/><circle cx="14.5" cy="5.5" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4.5-6 7a3 3 0 0 0 3 3c1.2 0 2-.6 3-.6s1.8.6 3 .6a3 3 0 0 0 3-3c0-2.5-3-7-6-7z"/></svg></div>
-      <h3>Dogs</h3>
-      <p>Each dog kennel is 4×8 feet. Dogs are let out several times a day to do their business and play. There’s an indoor play area for when it’s too cold or wet outside.</p>
-      <p class="mut" style="font-size:15px">The indoor play area is shared, so your dog needs to be dog friendly to use it while others are there.</p>
-      <div class="vax"><b>Vaccines required:</b> Rabies, Canine Distemper, Bordetella</div></div>
-    <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4l3 4h8l3-4v9a7 7 0 0 1-14 0z"/><circle cx="9.5" cy="12" r=".6" fill="currentColor"/><circle cx="14.5" cy="12" r=".6" fill="currentColor"/></svg></div>
-      <h3>Cats and ferrets</h3>
-      <p>Cats get their own cat condo in the lobby. There are two condos, and each fits up to 2 large cats or 3 small cats who get along. A kennel in the dog area is available if absolutely needed.</p>
-      <p>Ferrets are housed the same as cats if no cage is brought.</p>
-      <div class="vax"><b>Vaccines required for cats:</b> Rabies, FVRCP, Feline Leukemia</div></div>
-    <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3c-1 3-1 6 1 8M15 3c1 3 1 6-1 8"/><ellipse cx="12" cy="16" rx="6" ry="5"/></svg></div>
-      <h3>Other pets</h3>
-      <p>Birds, reptiles, rabbits and other small pets are welcome. Please bring their cage or enclosure (or a temporary one). They stay in the lobby or kennel area depending on space.</p>
-      <div class="vax"><b>Vaccines:</b> up to date where applicable</div></div>
-  </div>
-  <p class="note">All pets must be up to date on vaccines for their species. It keeps everyone’s pets healthy, including yours.</p>
+  <p class="mut" id="boardIntro"></p>
+  <div class="grid3" id="cards"></div>
+  <p class="note" id="vaxNote"></p>
   <div class="card" style="margin-top:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between">
     <div><h3 style="margin:0 0 4px">New here?</h3><span class="mut">Fill out the new guest forms ahead of time and bring them along or email them, or fill them out at drop-off.</span></div>
     <a class="btn alt" href="new-guest-forms.pdf" target="_blank" rel="noopener">New guest forms (PDF)</a>
@@ -160,77 +148,101 @@ footer a{color:var(--mut)}
 <section id="pricing" class="tint"><div class="wrap">
   <h2>Pricing</h2>
   <div class="two">
-    <div class="card">
-      <h3>Per night</h3>
-      <div class="price"><span>Dogs<small>per dog</small></span><b>$25</b></div>
-      <div class="price"><span>Cats<small>per cat</small></span><b>$15</b></div>
-      <div class="price"><span>Other pets<small>per pet</small></span><b>$10</b></div>
-      <p class="mut" style="margin:12px 0 0;font-size:15px">Two pets sharing a kennel, condo or enclosure: $2 off each. For example, two dogs in one kennel are $23 each, $46 a night.</p>
-    </div>
-    <div class="card">
-      <h3>Extras</h3>
-      <div class="price"><span>Pickup during evening hours</span><b>+$5</b></div>
-      <div class="price"><span>Drop-off or pickup outside hours</span><b>+$10</b></div>
-      <div class="price"><span>Medications given</span><b>+$2</b></div>
-      <p class="mut" style="margin:12px 0 0;font-size:15px">We take cards through Square. Card payments have a 2.6% fee to cover Square’s charge.</p>
-    </div>
+    <div class="card"><h3>Per night</h3><div id="prices"></div><p class="mut" style="margin:12px 0 0;font-size:15px" id="shareNote"></p></div>
+    <div class="card"><h3>Extras</h3><div id="extras"></div><p class="mut" style="margin:12px 0 0;font-size:15px" id="payNote"></p></div>
   </div>
 </div></section>
 
 <section id="gallery"><div class="wrap">
   <h2>Take a look around</h2>
-  <p class="mut">More pictures of our guests go up on <a href="https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/" target="_blank" rel="noopener">Facebook</a> most afternoons.</p>
+  <p class="mut">More pictures of our guests go up on <a class="fbLink" target="_blank" rel="noopener">Facebook</a> most afternoons.</p>
   <div class="gal" id="gal"></div>
 </div></section>
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo"><button class="x" aria-label="Close">×</button><button class="pv" aria-label="Previous">‹</button><img alt=""><p></p><button class="nx" aria-label="Next">›</button></div>
 
 <section id="about" class="tint"><div class="wrap about">
-  <img src="img/g1.jpg" alt="The Little Village Pet Lodge building, a big white metal building in the country" loading="lazy" width="1600" height="1200">
-  <div>
-    <h2>About us</h2>
-    <p>Little Village Pet Lodge is a pet boarding facility in rural Nebraska, just north of Funk. We take most any small pet, not just dogs and cats, and give your fur, feather or scaly babies a safe place to stay while you’re away.</p>
-    <p>Owner Ashleigh Jauken runs the lodge mostly by herself, usually with one or both of her young sons, Kaleb and Kolby, along. She has loved animals all her life, studied to be a vet tech at the Nebraska College of Technical Agriculture, and graduated with a degree in Applied Animal Science.</p>
-    <p>The name comes from the place. Funk is officially the Village of Funk, and with lots of different animals staying together, it’s a little village of its own. Being out in the country, “lodge” fit better than “boarding.”</p>
-    <p class="mut" style="font-size:15px"><b>Groomers:</b> we’re looking for a groomer to rent space at the lodge. Call, text or email if you’re interested.</p>
-  </div>
+  <img id="aboutImg" alt="The Little Village Pet Lodge building" loading="lazy" width="1600" height="1200">
+  <div><h2>About us</h2><div id="aboutText"></div><p class="mut" style="font-size:15px" id="groomer"></p></div>
 </div></section>
 
 <section id="contact"><div class="wrap two">
   <div class="card contact">
     <h2 style="font-size:28px">Contact</h2>
-    <a class="row" href="tel:+13082332652"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span>Call (308) 233-2652</span></a>
-    <a class="row" href="sms:+13082332652"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>Text (308) 233-2652</span></a>
-    <a class="row" href="mailto:littlevillagepetlodge@outlook.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>littlevillagepetlodge@outlook.com</span></a>
-    <a class="row" href="https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8z"/></svg><span>Message us on Facebook<small>Pictures and the latest news</small></span></a>
-    <a class="row" href="https://www.google.com/maps/search/?api=1&amp;query=40.5543323,-99.2906237" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>11841 740 Road, Funk, NE 68940<small>Open in Maps</small></span></a>
+    <a class="row telLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span data-pre="Call "></span></a>
+    <a class="row smsLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span data-pre="Text "></span></a>
+    <a class="row" id="emailLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span></span></a>
+    <a class="row fbLink" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8z"/></svg><span>Message us on Facebook<small>Pictures and the latest news</small></span></a>
+    <a class="row" id="mapLink" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span><span id="addr"></span><small>Open in Maps</small></span></a>
   </div>
   <div class="card" id="directions">
     <h2 style="font-size:28px">Directions</h2>
     <img class="map" src="img/map.png" alt="Map: the lodge is at the west end of 740 Road, between S Road and T Road. 741 Road and 739 Road are gravel; 740 Road west of T Road is minimum maintenance." loading="lazy" width="1252" height="845">
-    <p style="margin-top:14px">The first mile of 740 Rd west of T Rd is a minimum maintenance road. When it’s wet, or has been, please use 741 Rd or 739 Rd instead.</p>
-    <p style="margin:0"><b>We’re the big metal building.</b></p>
+    <div id="dirText" style="margin-top:14px"></div>
   </div>
 </div></section>
 </main>
 
 <footer><div class="wrap">
-  <p><b>Little Village Pet Lodge</b> · 11841 740 Road, Funk, NE 68940 · <a href="tel:+13082332652">(308) 233-2652</a></p>
-  <p><a href="book.html">Request a stay</a> · <a href="new-guest-forms.pdf">New guest forms</a> · <a href="https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/" target="_blank" rel="noopener">Facebook</a></p>
+  <p><b>Little Village Pet Lodge</b> · <span id="footAddr"></span> · <a class="telLink"><span></span></a></p>
+  <p><a href="book.html">Request a stay</a> · <a href="new-guest-forms.pdf">New guest forms</a> · <a class="fbLink" target="_blank" rel="noopener">Facebook</a></p>
 </div></footer>
+<noscript><p style="text-align:center">Call or text (308) 233-2652 · littlevillagepetlodge@outlook.com</p></noscript>
 
 <script>
 'use strict';
-// Gallery with a simple full-screen viewer
-const PHOTOS = [['g1','Facility building and parking'],['g2','Entrance'],['g3','Lobby'],['g4','Cat condos in the lobby'],['g5','A cat condo up close'],
-  ['g6','Kennel room'],['g7','Occupied kennel'],['g8','I’m Clio'],['g9','Being let out'],['g10','In the yard with a friend']];
-const gal = document.getElementById('gal'), lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbCap = lb.querySelector('p');
+const API = 'https://hmkhdmtededcxsjnlqxz.supabase.co/rest/v1/rpc/', KEY = 'sb_publishable_kNXTM6u_Jl95mmgBpJuzhw_bww2lCiB';
+const rpc = fn => fetch(API+fn, {method:'POST', headers:{apikey:KEY, 'Content-Type':'application/json'}, body:'{}'}).then(r => r.ok ? r.json() : null);
+// The text, prices and photos are edited in the kennel app (Settings > Website). This copy
+// is what shows until that loads, or if it can't. Keep it the same as defaultSite() in the app.
+const DEFAULT = {"v": 1, "notice": "", "headline": "Lodging for your pets while you’re away from home", "intro": "A safe, friendly place in the country north of Funk, Nebraska, for dogs, cats, and most any small pet with fur, feathers or scales.", "hero": "g8", "heroTag": "Hi, I’m Clio!", "boardIntro": "Enjoy your vacation or time away from home without worrying about your fur baby.", "cards": [{"title": "Dogs", "text": "Each dog kennel is 4×8 feet. Dogs are let out several times a day to do their business and play. There’s an indoor play area for when it’s too cold or wet outside.\n\nThe indoor play area is shared, so your dog needs to be dog friendly to use it while others are there.", "vax": "Vaccines required: Rabies, Canine Distemper, Bordetella"}, {"title": "Cats and ferrets", "text": "Cats get their own cat condo in the lobby. There are two condos, and each fits up to 2 large cats or 3 small cats who get along. A kennel in the dog area is available if absolutely needed.\n\nFerrets are housed the same as cats if no cage is brought.", "vax": "Vaccines required for cats: Rabies, FVRCP, Feline Leukemia"}, {"title": "Other pets", "text": "Birds, reptiles, rabbits and other small pets are welcome. Please bring their cage or enclosure (or a temporary one). They stay in the lobby or kennel area depending on space.", "vax": "Vaccines: up to date where applicable"}], "vaxNote": "All pets must be up to date on vaccines for their species. It keeps everyone’s pets healthy, including yours.", "prices": [{"label": "Dogs", "sub": "per dog", "price": "$25"}, {"label": "Cats", "sub": "per cat", "price": "$15"}, {"label": "Other pets", "sub": "per pet", "price": "$10"}], "shareNote": "Two pets sharing a kennel, condo or enclosure: $2 off each. For example, two dogs in one kennel are $23 each, $46 a night.", "extras": [{"label": "Pickup during evening hours", "price": "+$5"}, {"label": "Drop-off or pickup outside hours", "price": "+$10"}, {"label": "Medications given", "price": "+$2"}], "payNote": "We take cards through Square. Card payments have a 2.6% fee to cover Square’s charge.", "about": "Little Village Pet Lodge is a pet boarding facility in rural Nebraska, just north of Funk. We take most any small pet, not just dogs and cats, and give your fur, feather or scaly babies a safe place to stay while you’re away.\n\nOwner Ashleigh Jauken runs the lodge mostly by herself, usually with one or both of her young sons, Kaleb and Kolby, along. She has loved animals all her life, studied to be a vet tech at the Nebraska College of Technical Agriculture, and graduated with a degree in Applied Animal Science.\n\nThe name comes from the place. Funk is officially the Village of Funk, and with lots of different animals staying together, it’s a little village of its own. Being out in the country, “lodge” fit better than “boarding.”", "groomer": "Groomers: we’re looking for a groomer to rent space at the lodge. Call, text or email if you’re interested.", "phone": "(308) 233-2652", "email": "littlevillagepetlodge@outlook.com", "facebook": "https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/", "address": "11841 740 Road, Funk, NE 68940", "directions": "The first mile of 740 Rd west of T Rd is a minimum maintenance road. When it’s wet, or has been, please use 741 Rd or 739 Rd instead.\n\nWe’re the big metal building.", "photos": [{"id": "g1", "src": "img/g1.jpg", "sm": "img/g1-sm.jpg", "cap": "Facility building and parking"}, {"id": "g2", "src": "img/g2.jpg", "sm": "img/g2-sm.jpg", "cap": "Entrance"}, {"id": "g3", "src": "img/g3.jpg", "sm": "img/g3-sm.jpg", "cap": "Lobby"}, {"id": "g4", "src": "img/g4.jpg", "sm": "img/g4-sm.jpg", "cap": "Cat condos in the lobby"}, {"id": "g5", "src": "img/g5.jpg", "sm": "img/g5-sm.jpg", "cap": "A cat condo up close"}, {"id": "g6", "src": "img/g6.jpg", "sm": "img/g6-sm.jpg", "cap": "Kennel room"}, {"id": "g7", "src": "img/g7.jpg", "sm": "img/g7-sm.jpg", "cap": "Occupied kennel"}, {"id": "g8", "src": "img/g8.jpg", "sm": "img/g8-sm.jpg", "cap": "I’m Clio"}, {"id": "g9", "src": "img/g9.jpg", "sm": "img/g9-sm.jpg", "cap": "Being let out"}, {"id": "g10", "src": "img/g10.jpg", "sm": "img/g10-sm.jpg", "cap": "In the yard with a friend"}]};
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
+const paras = (box, text) => box.replaceChildren(...String(text||'').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean).map(t => el('p', null, t)));
+const ICON = [
+  '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="5.5" r="2.2"/><circle cx="14.5" cy="5.5" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4.5-6 7a3 3 0 0 0 3 3c1.2 0 2-.6 3-.6s1.8.6 3 .6a3 3 0 0 0 3-3c0-2.5-3-7-6-7z"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4l3 4h8l3-4v9a7 7 0 0 1-14 0z"/><circle cx="9.5" cy="12" r=".6" fill="currentColor"/><circle cx="14.5" cy="12" r=".6" fill="currentColor"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3c-1 3-1 6 1 8M15 3c1 3 1 6-1 8"/><ellipse cx="12" cy="16" rx="6" ry="5"/></svg>'];
+let PHOTOS = [];
+
+function draw(c){
+  const n = $('notice'); n.hidden = !c.notice; n.firstElementChild.textContent = c.notice || '';
+  // the last three words of the headline get the accent color
+  const w = c.headline.split(' '), cut = Math.max(0, w.length - 3);
+  $('headline').replaceChildren(w.slice(0, cut).join(' ') + (cut ? ' ' : ''), el('span', null, w.slice(cut).join(' ')));
+  $('intro').textContent = c.intro;
+  const hero = c.photos.find(p => p.id===c.hero) || c.photos[0];
+  if(hero){ $('heroImg').src = hero.src; $('heroImg').alt = hero.cap || ''; }
+  $('heroTag').textContent = c.heroTag || ''; $('heroTag').hidden = !c.heroTag;
+  $('boardIntro').textContent = c.boardIntro;
+  $('cards').replaceChildren(...c.cards.map((k, i) => { const d = el('div','card'), ic = el('div','ic'); ic.innerHTML = ICON[i] || ICON[2];
+    const t = el('div'); paras(t, k.text); const v = el('div','vax', k.vax); d.append(ic, el('h3', null, k.title), t, v); return d; }));
+  $('vaxNote').textContent = c.vaxNote; $('vaxNote').hidden = !c.vaxNote;
+  const row = (label, sub, price) => { const r = el('div','price'), s = el('span', null, label); if(sub) s.append(el('small', null, sub)); r.append(s, el('b', null, price)); return r; };
+  $('prices').replaceChildren(...c.prices.filter(p => p.label).map(p => row(p.label, p.sub, p.price)));
+  $('extras').replaceChildren(...c.extras.filter(p => p.label).map(p => row(p.label, '', p.price)));
+  $('shareNote').textContent = c.shareNote; $('payNote').textContent = c.payNote;
+  PHOTOS = c.photos;
+  $('gal').replaceChildren(...c.photos.map((p, i) => { const b = el('button'); b.setAttribute('aria-label', 'Open photo'+(p.cap ? ': '+p.cap : ''));
+    const im = el('img'); im.src = p.sm || p.src; im.alt = p.cap || ''; im.loading = 'lazy'; im.width = 640; im.height = 480; b.append(im);
+    if(p.cap) b.append(el('span', null, p.cap)); b.onclick = () => show(i); return b; }));
+  const about = c.photos.find(p => p.id==='g1') || c.photos[0]; if(about) $('aboutImg').src = about.src;
+  paras($('aboutText'), c.about); $('groomer').textContent = c.groomer || '';
+  const digits = c.phone.replace(/\D/g,''), tel = '+1' + digits.slice(-10);
+  document.querySelectorAll('.telLink').forEach(a => { a.href = 'tel:'+tel; const s = a.querySelector('span'); s.textContent = (s.dataset.pre || '') + c.phone; });
+  document.querySelectorAll('.smsLink').forEach(a => { a.href = 'sms:'+tel; const s = a.querySelector('span'); s.textContent = (s.dataset.pre || '') + c.phone; });
+  $('emailLink').href = 'mailto:'+c.email; $('emailLink').querySelector('span').textContent = c.email;
+  document.querySelectorAll('.fbLink').forEach(a => a.href = c.facebook);
+  $('addr').textContent = c.address; $('footAddr').textContent = c.address;
+  $('mapLink').href = 'https://www.google.com/maps/search/?api=1&query=40.5543323,-99.2906237';
+  paras($('dirText'), c.directions);
+}
+draw(DEFAULT);
+rpc('site_content').then(c => { if(c && c.v) draw({...DEFAULT, ...c}); }).catch(() => {});
+
+// full-screen photo viewer
+const lb = $('lb'), lbImg = lb.querySelector('img'), lbCap = lb.querySelector('p');
 let at = 0;
-PHOTOS.forEach(([f, cap], i) => {
-  const b = document.createElement('button'); b.setAttribute('aria-label', 'Open photo: '+cap);
-  b.innerHTML = `<img src="img/${f}-sm.jpg" alt="${cap}" loading="lazy" width="640" height="480"><span>${cap}</span>`;
-  b.onclick = () => show(i); gal.append(b);
-});
-function show(i){ at = (i + PHOTOS.length) % PHOTOS.length; lbImg.src = 'img/'+PHOTOS[at][0]+'.jpg'; lbImg.alt = PHOTOS[at][1]; lbCap.textContent = PHOTOS[at][1]; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
+function show(i){ at = (i + PHOTOS.length) % PHOTOS.length; lbImg.src = PHOTOS[at].src; lbImg.alt = PHOTOS[at].cap || ''; lbCap.textContent = PHOTOS[at].cap || ''; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
 function hide(){ lb.classList.remove('on'); document.body.style.overflow = ''; }
 lb.querySelector('.x').onclick = hide; lb.querySelector('.pv').onclick = () => show(at-1); lb.querySelector('.nx').onclick = () => show(at+1);
 lb.onclick = e => { if(e.target===lb) hide(); };
@@ -238,20 +250,18 @@ addEventListener('keydown', e => { if(!lb.classList.contains('on')) return; if(e
 let tx = null; lb.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
 lb.addEventListener('touchend', e => { if(tx==null) return; const d = e.changedTouches[0].clientX - tx; if(Math.abs(d) > 50) show(at + (d < 0 ? 1 : -1)); tx = null; });
 
-// Hours come from the kennel app's booking settings when they're set, so they're edited in one place
+// Hours come from the kennel app's booking settings when they're set
 const t12 = t => { const [a,b] = t.split(':'); return ((+a+11)%12+1)+(b==='00' ? '' : ':'+b)+(+a<12 ? ' AM' : ' PM'); };
 const span = ([a,b]) => { const x = t12(a), y = t12(b); return x.slice(-2)===y.slice(-2) ? x.slice(0,-3)+'–'+y : x+'–'+y; };
-fetch('https://hmkhdmtededcxsjnlqxz.supabase.co/rest/v1/rpc/booking_info', {method:'POST', headers:{apikey:'sb_publishable_kNXTM6u_Jl95mmgBpJuzhw_bww2lCiB', 'Content-Type':'application/json'}, body:'{}'})
-  .then(r => r.ok ? r.json() : null).then(info => {
-    if(!info || !Array.isArray(info.hours)) return;
-    const D = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], lines = [];
-    info.hours.forEach((w, i) => { const t = w.length ? w.map(span).join(' and ') : 'Closed', last = lines[lines.length-1];
-      if(last && last.t===t && last.to===i-1) last.to = i; else lines.push({from:i, to:i, t}); });
-    // Monday first reads more naturally
-    lines.sort((a, b) => (a.from || 7) - (b.from || 7));
-    document.getElementById('hoursList').innerHTML = lines.map(l => `<dt>${l.from===l.to ? D[l.from] : D[l.from]+'–'+D[l.to]}</dt><dd>${l.t}</dd>`).join('');
-    if(info.fee != null) document.getElementById('feeNote').textContent = info.fee ? 'Other times have a $'+info.fee+' fee.' : '';
-  }).catch(() => {});
+rpc('booking_info').then(info => {
+  if(!info || !Array.isArray(info.hours)) return;
+  const D = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], lines = [];
+  info.hours.forEach((w, i) => { const t = w.length ? w.map(span).join(' and ') : 'Closed', last = lines[lines.length-1];
+    if(last && last.t===t && last.to===i-1) last.to = i; else lines.push({from:i, to:i, t}); });
+  lines.sort((a, b) => (a.from || 7) - (b.from || 7));   // Monday first
+  $('hoursList').replaceChildren(...lines.flatMap(l => [el('dt', null, l.from===l.to ? D[l.from] : D[l.from]+'–'+D[l.to]), el('dd', null, l.t)]));
+  if(info.fee != null) $('feeNote').textContent = info.fee ? 'Other times have a $'+info.fee+' fee.' : '';
+}).catch(() => {});
 </script>
 </body>
 </html>
