@@ -161,7 +161,11 @@ const F = {start:null, end:null, arr:'', pick:'', otherArr:false, otherPick:fals
 let INFO = null, DAYS = {}, CHECK = null, ERR = '', SENDING = false, DONE = null, STATUS = null;
 // pets with the same kennel letter share; spots needed = kennel letters in use, per kind
 const LETTERS = 'ABCDEF';
-const need = () => { const d = new Set(), c = new Set(); F.pets.forEach(p => (p.species==='cat' ? c : d).add(p.g)); return {d:d.size, c:c.size}; };
+// "other" pets (rabbits, ferrets, birds...) bring a cage, or get a cat condo of their own
+const lettered = p => p.species==='dog' || p.species==='cat';
+const need = () => { const d = new Set(), c = new Set();
+  F.pets.forEach((p, i) => { if(p.species==='dog') d.add(p.g); else if(p.species==='cat') c.add(p.g); else if(!p.cage) c.add('other'+i); });
+  return {d:d.size, c:c.size}; };
 const firstOK = () => addDays(INFO.today, INFO.lead ?? 1);
 const lastOK = () => addDays(INFO.today, INFO.ahead ?? 180);
 // a night is open when there's room for this group and it isn't closed
@@ -190,30 +194,42 @@ function petsChanged(){
 function freeLetter(sp, self){
   const same = F.pets.find(x => x!==self && x.species===sp);
   if(same) return same.g;
-  return [...LETTERS].find(l => !F.pets.some(x => x!==self && x.g===l));
+  return [...LETTERS].find(l => !F.pets.some(x => x!==self && lettered(x) && x.g===l));
 }
-const petLabel = (p, i) => p.name.trim() || (p.species==='cat' ? 'Cat' : 'Dog')+' '+(i+1);
+const kindName = p => p.species==='cat' ? 'Cat' : p.species==='other' ? (p.kind.trim() || 'Pet') : 'Dog';
+const petLabel = (p, i) => p.name.trim() || kindName(p)+' '+(i+1);
+const listOf = a => a.length < 3 ? a.join(' and ') : a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 function shareText(){
   if(F.pets.length < 2) return '';
-  const by = {}; F.pets.forEach((p, i) => (by[p.g] ||= []).push(petLabel(p, i)));
-  const list = a => a.length < 3 ? a.join(' and ') : a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+  const by = {}, out = [];
+  F.pets.forEach((p, i) => { if(lettered(p)) (by[p.g] ||= []).push(petLabel(p, i)); });
   const groups = Object.values(by);
-  if(groups.every(a => a.length===1)) return 'Each has their own kennel.';
-  return groups.map(a => a.length > 1 ? list(a)+' share a kennel.' : a[0]+' has their own kennel.').join(' ');
+  if(groups.length > 1 && groups.every(a => a.length===1)) out.push(groups.length===F.pets.length ? 'Each has their own kennel.' : listOf(groups.map(a => a[0]))+' each have their own kennel.');
+  else groups.forEach(a => out.push(a.length > 1 ? listOf(a)+' share a kennel.' : a[0]+' has their own kennel.'));
+  F.pets.forEach((p, i) => { if(!lettered(p)) out.push(petLabel(p, i)+(p.cage ? ' comes in their own cage.' : ' gets a cat condo of their own.')); });
+  return out.join(' ');
 }
 function petCard(p, i){
-  const many = F.pets.length > 1;
+  const many = F.pets.filter(lettered).length > 1;
+  const setKind = v => { if(p.species===v) return; p.species = v;
+    if(v==='other'){ p.cage ??= true; p.kind ??= ''; }
+    else if(F.pets.some(x => x!==p && lettered(x) && x.g===p.g && x.species!==v) || !p.g) p.g = freeLetter(v, p);
+    petsChanged(); };
   return h('div',{class:'petcard'},
     h('div',{class:'row', style:'margin-bottom:8px'}, h('b',{}, 'Pet '+(i+1)),
-      many && h('button',{class:'lk bad', style:'min-height:32px', onclick:()=>{ F.pets.splice(i, 1); petsChanged(); }}, 'Remove')),
-    h('div',{class:'seg', style:'margin-bottom:10px'}, [['dog','Dog'],['cat','Cat']].map(([v,l]) => h('button',{class:p.species===v ? 'on' : '',
-      onclick:()=>{ if(p.species===v) return; p.species = v; if(F.pets.some(x => x!==p && x.g===p.g && x.species!==v)) p.g = freeLetter(v, p); petsChanged(); }}, l))),
+      F.pets.length > 1 && h('button',{class:'lk bad', style:'min-height:32px', onclick:()=>{ F.pets.splice(i, 1); petsChanged(); }}, 'Remove')),
+    h('div',{class:'seg', style:'margin-bottom:10px'}, [['dog','Dog'],['cat','Cat'],['other','Other']].map(([v,l]) => h('button',{class:p.species===v ? 'on' : '', onclick:()=>setKind(v)}, l))),
+    p.species==='other' && h('label',{class:'f'}, h('span',{class:'lbl'},'What kind of pet?'),
+      h('input',{value:p.kind || '', maxlength:40, autocomplete:'off', placeholder:'e.g. Rabbit, ferret, bird', oninput:e=>{ p.kind = e.target.value; }, onchange:()=>draw()})),
     h('div',{class:'two'},
       h('label',{class:'f'}, h('span',{class:'lbl'},'Name'), h('input',{value:p.name, maxlength:40, autocomplete:'off', oninput:e=>{ p.name = e.target.value; }, onchange:()=>draw()})),
-      h('label',{class:'f'}, h('span',{class:'lbl'},'Breed'), h('input',{value:p.breed, maxlength:60, autocomplete:'off', oninput:e=>{ p.breed = e.target.value; }}))),
-    many && h('div',{}, h('span',{class:'lbl'}, 'Kennel'),
-      h('div',{class:'chips'}, [...LETTERS.slice(0, F.pets.length)].map(l => {
-        const clash = F.pets.some(x => x!==p && x.g===l && x.species!==p.species);
+      h('label',{class:'f'}, h('span',{class:'lbl'}, p.species==='other' ? 'Breed (optional)' : 'Breed'), h('input',{value:p.breed, maxlength:60, autocomplete:'off', oninput:e=>{ p.breed = e.target.value; }}))),
+    p.species==='other' && h('div',{}, h('span',{class:'lbl'}, 'Cage'),
+      h('div',{class:'seg'}, [[true,'I’ll bring one'],[false,'I need one']].map(([v,l]) => h('button',{class:p.cage===v ? 'on' : '', onclick:()=>{ p.cage = v; petsChanged(); }}, l))),
+      h('p',{class:'mut', style:'margin:6px 0 0;font-size:13px'}, p.cage ? 'Bring their cage or enclosure (or a temporary one).' : 'They’ll stay in a cat condo, if one is free.')),
+    many && lettered(p) && h('div',{}, h('span',{class:'lbl'}, 'Kennel'),
+      h('div',{class:'chips'}, [...LETTERS.slice(0, F.pets.filter(lettered).length)].map(l => {
+        const clash = F.pets.some(x => x!==p && lettered(x) && x.g===l && x.species!==p.species);
         return h('button',{class:'chip kl'+(p.g===l ? ' on' : ''), disabled:clash || null, title:clash ? 'Dogs and cats can’t share' : null,
           'aria-label':'Kennel '+l, onclick:()=>{ p.g = l; petsChanged(); }}, l); }))));
 }
@@ -249,10 +265,11 @@ function monthCal(){
     if(x?.closed) cls.push('closed'); else if(early || (open===false && !pickable)) cls.push('no');
     if(F.start && F.end && d > F.start && d < F.end) cls.push('in');
     if(d===F.start) cls.push('start'); if(d===F.end) cls.push('end');
-    const n2 = need(), left = x && !x.closed && !early ? Math.min(...[n2.d && x.dogs, n2.c && x.cats].filter(v => v!==0 && v!=null)) : null;
+    const n2 = need(), low = x && !x.closed && !early ? [n2.d ? ['dog', x.dogs] : null, n2.c ? ['cat', x.cats] : null].filter(Boolean).sort((a, b) => a[1] - b[1])[0] : null;
+    const left = low ? low[1] : null;
     const usable = pickable || (!early && open!==false && !x?.closed);
     cells.push(h('button',{class:cls.join(' '), disabled:!usable || null, 'aria-label':wmd(d)+(x?.closed ? ', closed' : open===false ? ', full' : ''), onclick:()=>tapDay(d)},
-      i, x?.closed ? h('small',{},'closed') : (!early && open===false) ? h('small',{},'full') : (left!=null && left <= 3 && !early) ? h('small',{}, left+' left') : null));
+      i, x?.closed ? h('small',{},'closed') : (!early && open===false) ? h('small',{},'full') : (left!=null && left <= 3 && !early) ? h('small',{}, left+' '+low[0]) : null));
   }
   return [h('div',{class:'mh'},
       h('button',{'aria-label':'Previous month', disabled:base <= minMonth || null, onclick:()=>go(-1)}, '‹'),
@@ -288,22 +305,22 @@ function input(k, label, a = {}){
 
 async function send(){
   ERR = '';
-  const n = F.pets.findIndex(p => !p.name.trim());
+  const n = F.pets.findIndex(p => !p.name.trim() || (p.species==='other' && !(p.kind||'').trim()));
   const digits = F.phone.replace(/\D/g,'');
   ERR = !F.start || !F.end ? 'Pick your dates.' : !F.arr || !F.pick ? 'Pick drop-off and pickup times.'
     : F.name.trim().length < 2 ? 'Enter your name.' : !(digits.length===10 || (digits.length===11 && digits[0]==='1')) ? 'Enter a phone number with area code.'
-    : n >= 0 ? 'Enter a name for each pet (step 1).' : '';
+    : n >= 0 ? 'Enter a name (and kind, for other pets) for each pet in step 1.' : '';
   if(ERR){ draw(); return; }
   SENDING = true; draw();
   try {
     const token = await humanCheck();
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
-        pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:p.g}))}})});
+        pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined}))}})});
     const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
     if(r.ok){ DONE = r.token; history.replaceState(null, '', '?r='+r.token);
       MEM.reqs = [{token:r.token, start:F.start, end:F.end}, ...MEM.reqs.filter(x => x.token!==r.token)].slice(0, 8);
-      MEM.me = {name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g}))};
+      MEM.me = {name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage}))};
       saveMem(); }
     else { ERR = r.reason; if(/spots|closed|soon|far|shortest/i.test(r.reason)){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
   } catch(e){ ERR = /human check/.test(e.message) ? e.message : 'Couldn’t send. Check your connection and try again.'; }
@@ -316,14 +333,14 @@ const callUs = () => h('div',{class:'two', style:'margin-top:10px'}, h('a',{clas
 function formView(){
   if(!INFO.on) return [header('Request a stay'), mineBox(), h('div',{class:'warn'}, INFO.offNote || 'Online requests are paused right now. Please call or text us to book.'), callUs()];
   const n = need(), nights = F.start && F.end ? nightsBetween(F.start, F.end) : 0;
-  const room = CHECK && CHECK.ok && [n.d && plural(CHECK.dogs, 'dog spot'), n.c && plural(CHECK.cats, 'cat spot')].filter(Boolean).join(' and ');
+  const room = CHECK && CHECK.ok && [n.d && plural(CHECK.dogs, 'dog kennel'), n.c && plural(CHECK.cats, 'cat condo')].filter(Boolean).join(' · ');
+  const want = [n.d && plural(n.d, 'dog kennel'), n.c && plural(n.c, 'cat condo')].filter(Boolean).join(' and ');
   const enough = CHECK && CHECK.ok && CHECK.dogs >= n.d && CHECK.cats >= n.c;
   return [header('Request a stay'), mineBox(),
     h('p',{class:'mut'}, 'See what’s open and send a request. We’ll confirm by text or call. Nothing is booked until we do.'),
-    h('p',{class:'mut'}, 'Birds, reptiles, rabbits or other small pets? Please call or text '+PHONE_TEXT+' to book.'),
     h('h2',{}, '1. Who’s staying?'),
     h('div',{class:'card'}, F.pets.map(petCard),
-      F.pets.length > 1 && h('div',{class:'sharing'}, h('span',{class:'mut'}, 'Same letter = same kennel. '), shareText()),
+      F.pets.length > 1 && h('div',{class:'sharing'}, F.pets.filter(lettered).length > 1 && h('span',{class:'mut'}, 'Same letter = same kennel. '), shareText()),
       F.pets.length < 6 && h('button',{class:'b2', style:'width:100%;margin-top:10px', onclick:()=>{ F.pets.push({species:'dog', name:'', breed:'', g:freeLetter('dog')}); petsChanged(); }}, '+ Add another pet')),
     h('h2',{}, F.start && !F.end ? '2. Now pick the pickup day' : '2. Pick drop-off, then pickup'),
     h('div',{class:'card'}, monthCal()),
@@ -332,14 +349,14 @@ function formView(){
       F.end && h('div',{class:'mut'}, plural(nights,'night')),
       F.end && (!CHECK ? h('p',{class:'mut', style:'margin:8px 0 0'}, 'Checking…')
         : !CHECK.ok ? h('div',{class:'warn'}, CHECK.reason)
-        : enough ? h('div',{class:'ok'}, h('b',{}, room+' open'), ' for those dates.')
-        : h('div',{class:'warn'}, 'Not enough room for those dates. Try other days.'))),
+        : enough ? h('div',{class:'ok'}, h('div',{}, 'Open those dates: ', h('b',{}, room)), want && h('div',{class:'mut', style:'margin-top:2px'}, 'You need '+want+'.'))
+        : h('div',{class:'warn'}, 'Not enough room for those dates'+(want ? ' (you need '+want+')' : '')+'. Try other days.'))),
     ERR && !F.end && h('div',{class:'err'}, ERR),
     enough && [
       h('h2',{}, '3. Times'),
       (INFO.eveFee || INFO.fee) ? h('div',{class:'fees'},
-        INFO.eveFee && INFO.eveFrom ? h('div',{}, h('b',{}, 'Evening pickup, '+t12(INFO.eveFrom).replace(':00','')+' or later: +$'+INFO.eveFee+'.'), ' Like a late checkout. Drop-off at any of these times has no extra charge.') : null,
-        INFO.fee ? h('div',{}, h('b',{}, 'Outside these hours: +$'+INFO.fee+'.'), ' For a drop-off or pickup at another time.') : null) : null,
+        INFO.eveFee && INFO.eveFrom ? h('div',{}, h('b',{}, 'Pickup during evening hours ('+t12(INFO.eveFrom).replace(':00','')+' or later): +$'+INFO.eveFee+'.')) : null,
+        INFO.fee ? h('div',{}, h('b',{}, 'Drop-off or pickup before or after hours: +$'+INFO.fee+'.')) : null) : null,
       timePick(F.start, 'arr', 'otherArr', 'Drop-off'),
       timePick(F.end, 'pick', 'otherPick', 'Pickup'),
       h('h2',{}, '4. About you'),
@@ -431,7 +448,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
   }
   // fill in what they told us last time
   if(MEM.me){ F.name = MEM.me.name || ''; F.phone = MEM.me.phone || ''; F.email = MEM.me.email || '';
-    if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:p.species==='cat' ? 'cat' : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A'})); }
+    if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:['dog','cat','other'].includes(p.species) ? p.species : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A', kind:p.kind||'', cage:p.cage!==false})); }
   // requests sent from this device that are still ahead
   Promise.all(MEM.reqs.map(x => rpc('request_status', {p_token:x.token}).then(st => st && {...x, status:st.status, names:st.pets.map(p => p.name).join(', ')}).catch(() => null)))
     .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled'); draw(); });
