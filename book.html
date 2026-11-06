@@ -74,10 +74,14 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .pet{border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .link{word-break:break-all;font-size:14px}
+#tsbox{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;background:var(--card);border-radius:14px;padding:14px;box-shadow:0 6px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
+.fees{font-size:14px;color:var(--mut);margin:-4px 0 14px}
 </style>
 </head>
 <body>
 <div id="app"><p class="mut">Loading…</p></div>
+<div id="tsbox" hidden><p class="mut" style="margin:0 0 8px">One quick check that you’re not a robot:</p><div id="ts"></div></div>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script>
 'use strict';
 /* Public page: check open spots and request a stay, or (with ?r=...) see and cancel a request.
@@ -85,6 +89,25 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
    request_spot, request_status, request_cancel). It never sees the schedule or anyone's details. */
 const SUPA = {url:'https://hmkhdmtededcxsjnlqxz.supabase.co', key:'sb_publishable_kNXTM6u_Jl95mmgBpJuzhw_bww2lCiB'};
 const BIZ = 'Little Village Pet Lodge', PHONE = '+13082332652', PHONE_TEXT = '(308) 233-2652';
+// Sending goes through the request-spot server function, which runs the spam check first.
+// Its gate wants the project's public (legacy) anon key; like the publishable key, it's safe in a page.
+const SEND_URL = SUPA.url+'/functions/v1/request-spot', SEND_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2hkbXRlZGVkY3hzam5scXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5NzAzNTIsImV4cCI6MjEwOTU0NjM1Mn0.MAwoo-9B3v6M5GNUkEXQpnnmB-DMY3fgSD6r9RDod10';
+// Cloudflare Turnstile site key (public). 1x00000000000000000000AA is Cloudflare's test key: replace with the real one.
+const TURNSTILE_SITE = '1x00000000000000000000AA';
+let tsId = null, tsWait = null;
+function humanCheck(){
+  return new Promise((ok, no) => {
+    if(!window.turnstile) return no(new Error('The human check didn’t load. Check your connection and refresh.'));
+    const box = document.getElementById('tsbox');
+    tsWait = {ok, no};
+    if(tsId===null) tsId = turnstile.render('#ts', {sitekey:TURNSTILE_SITE, execution:'execute', appearance:'interaction-only',
+      'before-interactive-callback':()=>{ box.hidden = false; },
+      callback:t=>{ box.hidden = true; tsWait && tsWait.ok(t); tsWait = null; },
+      'error-callback':()=>{ box.hidden = true; tsWait && tsWait.no(new Error('The human check didn’t work. Please try again.')); tsWait = null; }});
+    else turnstile.reset(tsId);
+    turnstile.execute(tsId);
+  });
+}
 async function rpc(fn, args = {}){
   const r = await fetch(SUPA.url+'/rest/v1/rpc/'+fn, {method:'POST', headers:{apikey:SUPA.key, 'Content-Type':'application/json'}, body:JSON.stringify(args)});
   if(!r.ok) throw new Error('Server said '+r.status);
@@ -115,7 +138,7 @@ const fromMin = m => pad2(Math.floor(m/60))+':'+pad2(m%60);
 
 /* ---------- state ---------- */
 const F = {dogs:1, cats:0, share:true, start:null, end:null, arr:'', pick:'', otherArr:false, otherPick:false,
-  name:'', phone:'', email:'', notes:'', pets:[], month:null};
+  name:'', phone:'', email:'', notes:'', pets:[], month:null, key:(crypto.randomUUID ? crypto.randomUUID() : null)};
 let INFO = null, DAYS = {}, CHECK = null, ERR = '', SENDING = false, DONE = null, STATUS = null;
 const need = () => ({d: F.share ? Math.min(F.dogs, 1) : F.dogs, c: F.share ? Math.min(F.cats, 1) : F.cats});
 const firstOK = () => addDays(INFO.today, INFO.lead ?? 1);
@@ -207,10 +230,11 @@ function timePick(day, k, otherK, label){
   const w = INFO.hours?.[parseD(day).getDay()] || [];
   const slots = []; w.forEach(([a,b]) => { for(let m = toMin(a); m <= toMin(b); m += 30) slots.push(fromMin(m)); });
   const fee = INFO.fee ? ' ($'+INFO.fee+' fee)' : '';
+  const eve = t => k==='pick' && INFO.eveFee && INFO.eveFrom && t >= INFO.eveFrom;
   const set = v => { F[k] = v; draw(); };
   const other = [...Array(29)].map((_, i) => fromMin(7*60 + i*30)).filter(t => !slots.includes(t));   // 7 AM to 9 PM
   return h('div',{class:'f'}, h('span',{class:'lbl'}, label+', '+wmd(day)),
-    h('div',{class:'chips'}, slots.map(t => h('button',{class:'chip'+(F[k]===t ? ' on' : ''), onclick:()=>{ F[otherK] = false; set(t); }}, t12(t))),
+    h('div',{class:'chips'}, slots.map(t => h('button',{class:'chip'+(F[k]===t ? ' on' : ''), onclick:()=>{ F[otherK] = false; set(t); }}, t12(t)+(eve(t) ? '  +$'+INFO.eveFee : ''))),
       h('button',{class:'chip'+(F[otherK] ? ' on' : ''), onclick:()=>{ F[otherK] = !F[otherK]; if(!F[otherK] && !slots.includes(F[k])) F[k] = ''; draw(); }}, slots.length ? 'Another time'+fee : 'Pick a time'+fee)),
     F[otherK] && h('div',{class:'chips', style:'margin-top:8px'}, other.map(t => h('button',{class:'chip'+(F[k]===t ? ' on' : ''), onclick:()=>set(t)}, t12(t)))));
 }
@@ -231,11 +255,14 @@ async function send(){
   if(ERR){ draw(); return; }
   SENDING = true; draw();
   try {
-    const r = await rpc('request_spot', {p:{start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
-      share:F.share, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim()}))}});
+    const token = await humanCheck();
+    const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
+      body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
+        share:F.share, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim()}))}})});
+    const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
     if(r.ok){ DONE = r.token; history.replaceState(null, '', '?r='+r.token); }
     else { ERR = r.reason; if(/spots|closed|soon|far|shortest/i.test(r.reason)){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
-  } catch(e){ ERR = 'Couldn’t send. Check your connection and try again.'; }
+  } catch(e){ ERR = /human check/.test(e.message) ? e.message : 'Couldn’t send. Check your connection and try again.'; }
   SENDING = false; draw();
 }
 
@@ -266,6 +293,7 @@ function formView(){
     ERR && !F.end && h('div',{class:'err'}, ERR),
     enough && [
       h('h2',{}, 'Times'),
+      (INFO.eveFee || INFO.fee) ? h('p',{class:'fees'}, [INFO.eveFee && INFO.eveFrom && 'Pickup at '+t12(INFO.eveFrom).replace(':00','')+' or later: +$'+INFO.eveFee+'.', INFO.fee && 'Drop-off or pickup at other times: +$'+INFO.fee+'.'].filter(Boolean).join(' ')) : null,
       timePick(F.start, 'arr', 'otherArr', 'Drop-off'),
       timePick(F.end, 'pick', 'otherPick', 'Pickup'),
       h('h2',{}, 'About you'),
