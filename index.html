@@ -51,7 +51,7 @@ nav .btn{min-height:40px;padding:0 16px;margin-left:6px;font-size:15px}
 .hero .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
 .hero .pic{position:relative}
 .hero .pic img{border-radius:24px;aspect-ratio:4/3.4;object-fit:cover;width:100%;box-shadow:var(--shadow)}
-.hero .pic.lineup img{aspect-ratio:auto;object-fit:contain;background:#fff;padding:16px 12px}
+.hero .pic.lineup img{aspect-ratio:auto;object-fit:contain;box-shadow:none;border-radius:0}
 .hero .tag{position:absolute;left:16px;bottom:16px;background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:var(--shadow)}
 @media(max-width:820px){.hero{padding-top:20px}.hero .hw{grid-template-columns:1fr;gap:22px}.hero .pic{order:-1}.hero .lead{font-size:18px}}
 /* hours strip */
@@ -98,6 +98,7 @@ section.tint{background:var(--soft)}
 .contact .row svg{width:22px;height:22px;color:var(--pri);flex:none}
 .contact .row small{display:block;color:var(--mut);font-size:14px}
 .map{border-radius:16px;background:#fff;border:1px solid var(--line)}
+.gmap{display:block;width:100%;aspect-ratio:4/3;border:0;border-radius:16px;background:var(--soft)}
 .notice{background:var(--pink);color:#fff;font-weight:700;text-align:center;padding:10px 0}
 .notice .wrap{white-space:pre-wrap}
 footer{padding:32px 0 48px;color:var(--mut);font-size:15px;text-align:center}
@@ -177,6 +178,9 @@ footer a{color:var(--mut)}
   </div>
   <div class="card" id="directions">
     <h2 style="font-size:28px">Directions</h2>
+    <iframe class="gmap" title="Map showing Little Village Pet Lodge" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+      src="https://www.google.com/maps/embed?origin=mfe&amp;pb=!1m4!2m1!1s40.5543323,-99.2906237!5e1!6i14"></iframe>
+    <p class="mut" style="margin:8px 0 14px;font-size:14px"><a id="mapLink2" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&amp;destination=40.5543323,-99.2906237">Get directions in Google Maps</a></p>
     <img class="map" src="img/map.png" alt="Map: the lodge is at the west end of 740 Road, between S Road and T Road. 741 Road and 739 Road are gravel; 740 Road west of T Road is minimum maintenance." loading="lazy" width="1252" height="845">
     <div id="dirText" style="margin-top:14px"></div>
   </div>
@@ -214,7 +218,7 @@ function draw(c){
   // 'lineup' is the row of animals from the old site; otherwise one of the gallery photos
   const line = c.hero==='lineup', hero = !line && (c.photos.find(p => p.id===c.hero) || c.photos[0]);
   document.querySelector('.hero .pic').classList.toggle('lineup', line);
-  if(line){ $('heroImg').src = 'img/banner.jpg'; $('heroImg').alt = 'A fish, a ferret, dogs, a cat, a rabbit and other small pets in a row'; }
+  if(line){ $('heroImg').src = 'img/lineup.png'; $('heroImg').alt = 'A fish, a ferret, dogs, a cat, a rabbit and other small pets in a row'; }
   else if(hero){ $('heroImg').src = hero.src; $('heroImg').alt = hero.cap || ''; }
   $('heroTag').textContent = c.heroTag || ''; $('heroTag').hidden = !c.heroTag;
   $('boardIntro').textContent = c.boardIntro;
