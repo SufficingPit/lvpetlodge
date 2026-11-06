@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Village Pet Lodge</title>
+<meta name="description" content="Pet boarding north of Funk, Nebraska. Dogs, cats and most small pets. Check open spots and request a stay online.">
+<meta name="theme-color" content="#F3FAF8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101716" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Little Village Pet Lodge">
+<meta property="og:description" content="Pet boarding north of Funk, Nebraska. Request a stay online.">
+<meta property="og:image" content="img/g8.jpg">
+<link rel="icon" type="image/png" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<style>
+:root{--bg:#F3FAF8;--card:#fff;--ink:#1F3B36;--mut:#557069;--line:#D5E8E2;--pri:#2F7F72;--pri-ink:#fff;--mint:#A4F7D5;--soft:#E2F6EF;--pink:#E86FA7;--shadow:0 1px 3px rgba(20,60,50,.08),0 6px 20px rgba(20,60,50,.06)}
+@media(prefers-color-scheme:dark){:root{--bg:#101716;--card:#18211F;--ink:#E3F1EC;--mut:#9CB5AD;--line:#27352F;--pri:#5CC2B0;--pri-ink:#062520;--mint:#2D5A4C;--soft:#1C2B27;--pink:#F08DBB;--shadow:none;color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--pri)}
+img{max-width:100%;height:auto;display:block}
+h1,h2,h3{line-height:1.2;margin:0 0 .5em}
+h2{font-size:clamp(26px,4vw,34px)}
+h3{font-size:20px}
+p{margin:0 0 1em}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;background:var(--pri);color:var(--pri-ink);font-weight:700;text-decoration:none;border:0;font-size:16px}
+.btn.alt{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn svg{width:18px;height:18px}
+.mut{color:var(--mut)}
+/* top bar */
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px;min-height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;line-height:1.1;flex:none}
+.brand img{width:42px;height:42px;border-radius:8px;background:#fff}
+.brand small{display:block;font-weight:600;color:var(--mut);font-size:12px}
+nav{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{white-space:nowrap;text-decoration:none;color:var(--ink);font-weight:600;font-size:15px;padding:8px 12px;border-radius:999px}
+nav a:hover{background:var(--soft)}
+nav .btn{min-height:40px;padding:0 16px;margin-left:6px;font-size:15px}
+@media(max-width:820px){.bar{flex-wrap:wrap;padding-bottom:8px}nav{margin-left:0;width:100%;order:3}.bar .btn.top{margin-left:auto}nav .btn{display:none}}
+@media(min-width:821px){.bar .btn.top{display:none}}
+/* hero */
+.hero{padding:40px 0 24px}
+.hero .hw{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(34px,6vw,54px);letter-spacing:-.01em}
+.hero h1 span{color:var(--pri)}
+.hero .lead{font-size:20px;color:var(--mut);max-width:34em}
+.hero .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.hero .pic{position:relative}
+.hero .pic img{border-radius:24px;aspect-ratio:4/3.4;object-fit:cover;width:100%;box-shadow:var(--shadow)}
+.hero .tag{position:absolute;left:16px;bottom:16px;background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:var(--shadow)}
+@media(max-width:820px){.hero{padding-top:20px}.hero .hw{grid-template-columns:1fr;gap:22px}.hero .pic{order:-1}.hero .lead{font-size:18px}}
+/* hours strip */
+.hours{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:20px 22px;display:grid;grid-template-columns:auto 1fr auto;gap:8px 32px;align-items:center;margin-top:28px}
+.hours h3{margin:0}
+.hours dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:2px 14px}
+.hours dt{font-weight:700}.hours dd{margin:0}
+@media(max-width:820px){.hours{grid-template-columns:1fr}}
+section{padding:56px 0}
+section.tint{background:var(--soft)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:820px){.grid3{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+.card .ic{width:46px;height:46px;border-radius:14px;background:var(--soft);color:var(--pri);display:grid;place-items:center;margin-bottom:12px}
+.card .ic svg{width:26px;height:26px}
+.note{border-left:4px solid var(--pink);padding:2px 0 2px 14px;margin:14px 0 0;font-weight:600}
+.vax{font-size:15px;color:var(--mut);margin-top:10px}
+/* pricing */
+.price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.price:last-child{border-bottom:0}
+.price b{font-size:24px;color:var(--pri)}
+.price span small{display:block;color:var(--mut);font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+/* gallery */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.gal button{padding:0;border:0;background:none;cursor:zoom-in;border-radius:14px;overflow:hidden;position:relative;aspect-ratio:1/1}
+.gal img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.gal button:hover img{transform:scale(1.04)}
+.gal span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;color:#fff;font-size:14px;font-weight:600;text-align:left;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(5,12,10,.92);display:none;align-items:center;justify-content:center;flex-direction:column;padding:16px}
+.lb.on{display:flex}
+.lb img{max-height:80vh;max-width:min(1200px,100%);border-radius:10px}
+.lb p{color:#fff;margin:12px 0 0;font-weight:600}
+.lb button{position:absolute;border:0;background:rgba(255,255,255,.12);color:#fff;width:48px;height:48px;border-radius:24px;font-size:26px;cursor:pointer}
+.lb .x{top:16px;right:16px}.lb .pv{left:16px;top:50%}.lb .nx{right:16px;top:50%}
+/* about */
+.about{display:grid;grid-template-columns:1fr 1.3fr;gap:36px;align-items:center}
+.about img{border-radius:20px;box-shadow:var(--shadow);aspect-ratio:4/3;object-fit:cover;width:100%}
+@media(max-width:820px){.about{grid-template-columns:1fr}}
+/* contact */
+.contact a.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.contact a.row:last-child{border-bottom:0}
+.contact .row svg{width:22px;height:22px;color:var(--pri);flex:none}
+.contact .row small{display:block;color:var(--mut);font-size:14px}
+.map{border-radius:16px;background:#fff;border:1px solid var(--line)}
+footer{padding:32px 0 48px;color:var(--mut);font-size:15px;text-align:center}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <a class="brand" href="#top"><img src="img/logo.png" alt="" width="42" height="42"><span>Little Village<small>Pet Lodge</small></span></a>
+  <a class="btn top" href="book.html">Request a stay</a>
+  <nav aria-label="Sections">
+    <a href="#boarding">Boarding</a><a href="#pricing">Pricing</a><a href="#gallery">Gallery</a><a href="#about">About</a><a href="#contact">Contact</a><a href="#directions">Directions</a>
+    <a class="btn" href="book.html">Request a stay</a>
+  </nav>
+</div></header>
+
+<main id="top">
+<div class="hero"><div class="wrap hw">
+  <div>
+    <h1>Lodging for your pets while you’re <span>away from home</span></h1>
+    <p class="lead">A safe, friendly place in the country north of Funk, Nebraska, for dogs, cats, and most any small pet with fur, feathers or scales.</p>
+    <div class="acts">
+      <a class="btn" href="book.html">Check open spots</a>
+      <a class="btn alt" href="tel:+13082332652"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>(308) 233-2652</a>
+    </div>
+  </div>
+  <div class="pic"><img src="img/g8.jpg" alt="Clio, a happy Australian Shepherd, sitting in the kennel room" width="1600" height="1200"><span class="tag">Hi, I’m Clio!</span></div>
+</div>
+<div class="wrap">
+  <div class="hours" id="hours">
+    <h3>Drop-off &amp; pickup</h3>
+    <dl id="hoursList"><dt>Mon–Sat</dt><dd>8–9:30 AM and 4–5:30 PM</dd><dt>Sun</dt><dd>5–6 PM only</dd></dl>
+    <div class="mut" id="feeNote">Other times have a $10 fee.</div>
+  </div>
+</div></div>
+
+<section id="boarding"><div class="wrap">
+  <h2>Boarding</h2>
+  <p class="mut">Enjoy your vacation or time away from home without worrying about your fur baby.</p>
+  <div class="grid3">
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="5.5" r="2.2"/><circle cx="14.5" cy="5.5" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4.5-6 7a3 3 0 0 0 3 3c1.2 0 2-.6 3-.6s1.8.6 3 .6a3 3 0 0 0 3-3c0-2.5-3-7-6-7z"/></svg></div>
+      <h3>Dogs</h3>
+      <p>Each dog kennel is 4×8 feet. Dogs are let out several times a day to do their business and play. There’s an indoor play area for when it’s too cold or wet outside.</p>
+      <p class="mut" style="font-size:15px">The indoor play area is shared, so your dog needs to be dog friendly to use it while others are there.</p>
+      <div class="vax"><b>Vaccines required:</b> Rabies, Canine Distemper, Bordetella</div></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4l3 4h8l3-4v9a7 7 0 0 1-14 0z"/><circle cx="9.5" cy="12" r=".6" fill="currentColor"/><circle cx="14.5" cy="12" r=".6" fill="currentColor"/></svg></div>
+      <h3>Cats and ferrets</h3>
+      <p>Cats get their own cat condo in the lobby. There are two condos, and each fits up to 2 large cats or 3 small cats who get along. A kennel in the dog area is available if absolutely needed.</p>
+      <p>Ferrets are housed the same as cats if no cage is brought.</p>
+      <div class="vax"><b>Vaccines required for cats:</b> Rabies, FVRCP, Feline Leukemia</div></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3c-1 3-1 6 1 8M15 3c1 3 1 6-1 8"/><ellipse cx="12" cy="16" rx="6" ry="5"/></svg></div>
+      <h3>Other pets</h3>
+      <p>Birds, reptiles, rabbits and other small pets are welcome. Please bring their cage or enclosure (or a temporary one). They stay in the lobby or kennel area depending on space.</p>
+      <div class="vax"><b>Vaccines:</b> up to date where applicable</div></div>
+  </div>
+  <p class="note">All pets must be up to date on vaccines for their species. It keeps everyone’s pets healthy, including yours.</p>
+  <div class="card" style="margin-top:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+    <div><h3 style="margin:0 0 4px">New here?</h3><span class="mut">Fill out the new guest forms ahead of time and bring them along or email them, or fill them out at drop-off.</span></div>
+    <a class="btn alt" href="new-guest-forms.pdf" target="_blank" rel="noopener">New guest forms (PDF)</a>
+  </div>
+</div></section>
+
+<section id="pricing" class="tint"><div class="wrap">
+  <h2>Pricing</h2>
+  <div class="two">
+    <div class="card">
+      <h3>Per night</h3>
+      <div class="price"><span>Dogs<small>per dog</small></span><b>$25</b></div>
+      <div class="price"><span>Cats<small>per cat</small></span><b>$15</b></div>
+      <div class="price"><span>Other pets<small>per pet</small></span><b>$10</b></div>
+      <p class="mut" style="margin:12px 0 0;font-size:15px">Two pets sharing a kennel, condo or enclosure: $2 off each. For example, two dogs in one kennel are $23 each, $46 a night.</p>
+    </div>
+    <div class="card">
+      <h3>Extras</h3>
+      <div class="price"><span>Pickup during evening hours</span><b>+$5</b></div>
+      <div class="price"><span>Drop-off or pickup outside hours</span><b>+$10</b></div>
+      <div class="price"><span>Medications given</span><b>+$2</b></div>
+      <p class="mut" style="margin:12px 0 0;font-size:15px">We take cards through Square. Card payments have a 2.6% fee to cover Square’s charge.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="gallery"><div class="wrap">
+  <h2>Take a look around</h2>
+  <p class="mut">More pictures of our guests go up on <a href="https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/" target="_blank" rel="noopener">Facebook</a> most afternoons.</p>
+  <div class="gal" id="gal"></div>
+</div></section>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo"><button class="x" aria-label="Close">×</button><button class="pv" aria-label="Previous">‹</button><img alt=""><p></p><button class="nx" aria-label="Next">›</button></div>
+
+<section id="about" class="tint"><div class="wrap about">
+  <img src="img/g1.jpg" alt="The Little Village Pet Lodge building, a big white metal building in the country" loading="lazy" width="1600" height="1200">
+  <div>
+    <h2>About us</h2>
+    <p>Little Village Pet Lodge is a pet boarding facility in rural Nebraska, just north of Funk. We take most any small pet, not just dogs and cats, and give your fur, feather or scaly babies a safe place to stay while you’re away.</p>
+    <p>Owner Ashleigh Jauken runs the lodge mostly by herself, usually with one or both of her young sons, Kaleb and Kolby, along. She has loved animals all her life, studied to be a vet tech at the Nebraska College of Technical Agriculture, and graduated with a degree in Applied Animal Science.</p>
+    <p>The name comes from the place. Funk is officially the Village of Funk, and with lots of different animals staying together, it’s a little village of its own. Being out in the country, “lodge” fit better than “boarding.”</p>
+    <p class="mut" style="font-size:15px"><b>Groomers:</b> we’re looking for a groomer to rent space at the lodge. Call, text or email if you’re interested.</p>
+  </div>
+</div></section>
+
+<section id="contact"><div class="wrap two">
+  <div class="card contact">
+    <h2 style="font-size:28px">Contact</h2>
+    <a class="row" href="tel:+13082332652"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span>Call (308) 233-2652</span></a>
+    <a class="row" href="sms:+13082332652"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>Text (308) 233-2652</span></a>
+    <a class="row" href="mailto:littlevillagepetlodge@outlook.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>littlevillagepetlodge@outlook.com</span></a>
+    <a class="row" href="https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8z"/></svg><span>Message us on Facebook<small>Pictures and the latest news</small></span></a>
+    <a class="row" href="https://www.google.com/maps/search/?api=1&amp;query=40.5543323,-99.2906237" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>11841 740 Road, Funk, NE 68940<small>Open in Maps</small></span></a>
+  </div>
+  <div class="card" id="directions">
+    <h2 style="font-size:28px">Directions</h2>
+    <img class="map" src="img/map.png" alt="Map: the lodge is at the west end of 740 Road, between S Road and T Road. 741 Road and 739 Road are gravel; 740 Road west of T Road is minimum maintenance." loading="lazy" width="1252" height="845">
+    <p style="margin-top:14px">The first mile of 740 Rd west of T Rd is a minimum maintenance road. When it’s wet, or has been, please use 741 Rd or 739 Rd instead.</p>
+    <p style="margin:0"><b>We’re the big metal building.</b></p>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <p><b>Little Village Pet Lodge</b> · 11841 740 Road, Funk, NE 68940 · <a href="tel:+13082332652">(308) 233-2652</a></p>
+  <p><a href="book.html">Request a stay</a> · <a href="new-guest-forms.pdf">New guest forms</a> · <a href="https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/" target="_blank" rel="noopener">Facebook</a></p>
+</div></footer>
+
+<script>
+'use strict';
+// Gallery with a simple full-screen viewer
+const PHOTOS = [['g1','Facility building and parking'],['g2','Entrance'],['g3','Lobby'],['g4','Cat condos in the lobby'],['g5','A cat condo up close'],
+  ['g6','Kennel room'],['g7','Occupied kennel'],['g8','I’m Clio'],['g9','Being let out'],['g10','In the yard with a friend']];
+const gal = document.getElementById('gal'), lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbCap = lb.querySelector('p');
+let at = 0;
+PHOTOS.forEach(([f, cap], i) => {
+  const b = document.createElement('button'); b.setAttribute('aria-label', 'Open photo: '+cap);
+  b.innerHTML = `<img src="img/${f}-sm.jpg" alt="${cap}" loading="lazy" width="640" height="480"><span>${cap}</span>`;
+  b.onclick = () => show(i); gal.append(b);
+});
+function show(i){ at = (i + PHOTOS.length) % PHOTOS.length; lbImg.src = 'img/'+PHOTOS[at][0]+'.jpg'; lbImg.alt = PHOTOS[at][1]; lbCap.textContent = PHOTOS[at][1]; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
+function hide(){ lb.classList.remove('on'); document.body.style.overflow = ''; }
+lb.querySelector('.x').onclick = hide; lb.querySelector('.pv').onclick = () => show(at-1); lb.querySelector('.nx').onclick = () => show(at+1);
+lb.onclick = e => { if(e.target===lb) hide(); };
+addEventListener('keydown', e => { if(!lb.classList.contains('on')) return; if(e.key==='Escape') hide(); if(e.key==='ArrowLeft') show(at-1); if(e.key==='ArrowRight') show(at+1); });
+let tx = null; lb.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+lb.addEventListener('touchend', e => { if(tx==null) return; const d = e.changedTouches[0].clientX - tx; if(Math.abs(d) > 50) show(at + (d < 0 ? 1 : -1)); tx = null; });
+
+// Hours come from the kennel app's booking settings when they're set, so they're edited in one place
+const t12 = t => { const [a,b] = t.split(':'); return ((+a+11)%12+1)+(b==='00' ? '' : ':'+b)+(+a<12 ? ' AM' : ' PM'); };
+const span = ([a,b]) => { const x = t12(a), y = t12(b); return x.slice(-2)===y.slice(-2) ? x.slice(0,-3)+'–'+y : x+'–'+y; };
+fetch('https://hmkhdmtededcxsjnlqxz.supabase.co/rest/v1/rpc/booking_info', {method:'POST', headers:{apikey:'sb_publishable_kNXTM6u_Jl95mmgBpJuzhw_bww2lCiB', 'Content-Type':'application/json'}, body:'{}'})
+  .then(r => r.ok ? r.json() : null).then(info => {
+    if(!info || !Array.isArray(info.hours)) return;
+    const D = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], lines = [];
+    info.hours.forEach((w, i) => { const t = w.length ? w.map(span).join(' and ') : 'Closed', last = lines[lines.length-1];
+      if(last && last.t===t && last.to===i-1) last.to = i; else lines.push({from:i, to:i, t}); });
+    // Monday first reads more naturally
+    lines.sort((a, b) => (a.from || 7) - (b.from || 7));
+    document.getElementById('hoursList').innerHTML = lines.map(l => `<dt>${l.from===l.to ? D[l.from] : D[l.from]+'–'+D[l.to]}</dt><dd>${l.t}</dd>`).join('');
+    if(info.fee != null) document.getElementById('feeNote').textContent = info.fee ? 'Other times have a $'+info.fee+' fee.' : '';
+  }).catch(() => {});
+</script>
+</body>
+</html>
