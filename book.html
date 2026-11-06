@@ -54,10 +54,10 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .mh b{font-size:17px}
 .mh button{width:44px;height:44px;border:0;background:none;font-size:22px;color:var(--ink)}
 .mh button:disabled{opacity:.25}
-.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .dow{text-align:center;font-size:12px;font-weight:600;color:var(--mut);padding:4px 0}
-.day{position:relative;aspect-ratio:1/1;min-height:42px;border:0;border-radius:10px;background:var(--card);font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:var(--shadow)}
-.day small{font-size:10px;font-weight:600;color:var(--mut);line-height:1}
+.day{position:relative;min-width:0;padding:0;aspect-ratio:1/1;min-height:42px;border:0;border-radius:10px;background:var(--card);font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:var(--shadow)}
+.day small{font-size:10px;font-weight:600;color:var(--mut);line-height:1;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip}
 .day.no{background:var(--off);color:var(--mut);box-shadow:none}
 .day.closed{background:repeating-linear-gradient(135deg,var(--off),var(--off) 5px,transparent 5px,transparent 9px);color:var(--mut);box-shadow:none}
 .day.in{background:var(--pri-soft);border-radius:0}
