@@ -176,6 +176,11 @@ function startForm(){
   } else { try { const m = load('lvpl-mine'), me = m && m.me;   // what they told the request page on this device
     if(me){ setName(F.owner, me.name); F.owner.cell = me.phone || ''; F.owner.email = me.email || '';
       if(me.pets && me.pets.length) F.pets = me.pets.map(reqPet); } } catch(e) {} }
+  // opened from a request with a draft or saved copy: fill any blank name, phone or email from the request
+  if(NEED && (hadDraft || FROMSENT)){ const O = F.owner;
+    if(!O.first.trim() && !O.last.trim()) setName(O, NEED.name);
+    if(!O.cell.trim() && !O.main.trim()) O.cell = NEED.phone || '';
+    if(!O.email.trim()) O.email = NEED.email || ''; }
   // an update from a request: add any pets the request named that the saved copy doesn't have
   if(MODE==='update' && NEED && (hadDraft || FROMSENT)) (NEED.pets || []).forEach(p => {
     if(p.name && !F.pets.some(x => x.name.trim().toLowerCase()===p.name.trim().toLowerCase())) F.pets.push(reqPet(p)); });
