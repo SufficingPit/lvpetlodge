@@ -118,10 +118,10 @@ function guestPaper(d, base, opts){
         +ln('Other things you should know about me:', P+'notes')
         +'<div class="gp-fl2">'+ln('Likes:', P+'likes')+ln('Dislikes:', P+'dislikes')+'</div>'
         +'<div class="gp-behs">'
-          +'<div class="gp-fl gp-beh"><span class="gp-jump">I can JUMP FENCES!!!</span>'+yn(P+'jumps')+'</div>'
+          +'<div class="gp-fl gp-beh"><span class="gp-bq">I can jump fences:</span>'+yn(P+'jumps')+'</div>'
           +'<div class="gp-fl gp-beh"><span class="gp-bq">I have been known to bite:</span>'+yn(P+'bites')+'</div>'
           +'<div class="gp-fl gp-beh"><span class="gp-bq">I have been known to start a fight:</span>'+yn(P+'fights')+'</div>'
-          +'<div class="gp-fl gp-beh"><b class="gp-bq">Do I eat/chew up beds?</b>'+yn(P+'chews')+'</div>'
+          +'<div class="gp-fl gp-beh"><span class="gp-bq">I eat or chew up beds:</span>'+yn(P+'chews')+'</div>'
           +'<div class="gp-behart">'+img('bulldog')+img('cat2')+'</div>'
         +'</div>'
         +'<p class="gp-bednote">If a bed is provided by L.V. Pet Lodge and I chew it up, my parents will be charged $10 to help replace the bed.</p>'
@@ -264,7 +264,6 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-behs{position:relative;margin-top:.04in;padding-right:1.7in}
 .gp-beh{align-items:center;margin-bottom:.045in}
 .gp-yn .gp-cb{width:.6in;margin-right:.08in}
-.gp-jump{font:700 11.5pt "Courier Prime","Courier New",monospace;width:3.1in;flex:none}
 .gp-bq{width:3.1in;flex:none}
 .gp-behart{position:absolute;right:0;top:.02in;display:flex;gap:.08in}
 .gp-behart img{height:.75in;width:.75in}
