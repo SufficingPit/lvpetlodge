@@ -20,13 +20,13 @@ const PAW = '<path d="M12.1 11.2c-3.3 0-6.4 3.7-6.4 6.5 0 2.1 1.6 3.1 3.5 3.1 1.
 let LINES = false;
 const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';'+'fill:'+(LINES ? '#111' : color)+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
 // trail prints: a simpler paw with clear gaps so the toes stay separate when small
-const TPAW = '<ellipse cx="12" cy="16.5" rx="5.6" ry="4.6"/><ellipse cx="4.6" cy="9.4" rx="2.3" ry="2.7" transform="rotate(-20 4.6 9.4)"/><ellipse cx="9.4" cy="4.6" rx="2.3" ry="2.8"/><ellipse cx="14.6" cy="4.6" rx="2.3" ry="2.8"/><ellipse cx="19.4" cy="9.4" rx="2.3" ry="2.7" transform="rotate(20 19.4 9.4)"/>';
+const TPAW = '<path d="M12 12.4c-3.6 0-6.9 3.9-6.9 6.8 0 2.2 1.7 3.3 3.7 3.3 1.3 0 2.2-.8 3.2-.8s1.9.8 3.2.8c2 0 3.7-1.1 3.7-3.3 0-2.9-3.3-6.8-6.9-6.8z"/><ellipse cx="4.3" cy="9.6" rx="2.4" ry="3" transform="rotate(-22 4.3 9.6)"/><ellipse cx="9.2" cy="4.4" rx="2.4" ry="3.1" transform="rotate(-8 9.2 4.4)"/><ellipse cx="14.8" cy="4.4" rx="2.4" ry="3.1" transform="rotate(8 14.8 4.4)"/><ellipse cx="19.7" cy="9.6" rx="2.4" ry="3" transform="rotate(22 19.7 9.6)"/>';
 // a little trail of black paw prints walking along a line
 function trail(n, back){
   let g = '';
-  n = Math.max(4, Math.round(n * 0.62));   // fewer, larger prints so pad and toes read clearly
+  n = 5;   // prints walk sideways toward the title, alternating left and right feet
   for(let i = 0; i < n; i++){ const x = 4 + i*27, y = i % 2 ? 1 : 15;
-    g += '<g transform="translate('+x+' '+y+') rotate('+(i % 2 ? 100 : 80)+' 9.5 9.5) scale(.8)">'+TPAW+'</g>'; }
+    g += '<g transform="translate('+x+' '+y+') rotate('+(i % 2 ? 100 : 80)+' 9.6 9.6) scale(.8)">'+TPAW+'</g>'; }
   const w = n*27+10;   // back: the right-hand trail walks left, toward the title
   return '<svg class="gp-trail" viewBox="0 0 '+w+' 36" preserveAspectRatio="xMidYMid meet">'+(back ? '<g transform="translate('+w+' 0) scale(-1 1)">'+g+'</g>' : g)+'</svg>';
 }
@@ -244,7 +244,7 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-medbox{padding:0 .05in;font-size:10.5pt}
 .gp-cond{position:relative;padding-right:.85in;font-size:10pt}
 .gp-cond .gp-multi{margin-bottom:.03in}
-.gp-cpup{position:absolute;right:0;top:-.12in;width:.72in;height:.72in}
+.gp-cpup{position:absolute;right:0;top:-.02in;width:.72in;height:.72in}
 .gp-medh{font:italic 700 11pt/1.2 Verdana,"DejaVu Sans",sans-serif;margin:.03in 0 .05in}
 .gp-meds{display:grid;grid-template-columns:.16in 1.9fr 1fr 1.15fr 2.3fr;column-gap:.1in;row-gap:.055in;align-items:end;font-size:10pt}
 .gp-mth{grid-column:auto;font:700 8.5pt/1 Verdana,"DejaVu Sans",sans-serif;color:#2c4a6e;padding-left:3px}
