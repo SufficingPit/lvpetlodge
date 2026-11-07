@@ -281,12 +281,12 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-in1{text-indent:.45in}
 .gp-vet{display:flex;align-items:center;gap:.4in;margin:.02in 0 .08in}
 .gp-vet p{margin:0!important}
-.gp-vp{width:.65in;height:.85in;margin-left:.5in}.gp-vc{width:.65in;height:.85in}
+.gp-vp{width:.75in;height:.88in;margin-left:.5in}.gp-vc{width:.68in;height:.88in}
 .gp-ack{display:flex;align-items:flex-start;gap:.08in;margin-top:.04in}
 .gp-ack .gp-cb{margin:.03in 0 0}
 .gp-ack .gp-cb i{width:.16in;height:.16in}
 .gp-ack p{flex:1;margin:0!important;font-weight:700}
-.gp-ackc{width:.75in;height:.75in;flex:none}
+.gp-ackc{width:1in;height:.72in;flex:none}
 .gp-sign{display:flex;gap:.35in;margin:.18in 0 .06in}
 .gp-s1{flex:2.4}.gp-s2{flex:1}
 .gp-s1 .gp-ln{height:.45in;position:relative;overflow:visible}
