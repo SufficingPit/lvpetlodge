@@ -150,8 +150,6 @@ function guestPaper(d, base, opts){
           +(E ? '<button type="button" class="gp-ln gp-signbtn" data-sign="1">'+(signed || '<span class="gp-tap">Tap here to sign</span>')+'</button>' : '<span class="gp-ln">'+signed+'</span>')+'</div>'
         +'<div class="gp-fl gp-s2"><span class="gp-lb">DATE</span><span class="gp-ln">'+esc(fmtDate(S.date))+'</span></div></div>'
       +ln('PRINTED NAME', 'sign.name', '', 'gp-pname')
-      +'<p class="gp-c gp-bd">BOARDING DATES</p>'
-      +'<div class="gp-dates">'+[0,1,2,3].map(() => '<div class="gp-fl"><span class="gp-ln"></span><span class="gp-lb gp-to">to</span><span class="gp-ln"></span></div>').join('')+'</div>'
       +'</div></section>';
   }
   return familyPage() + pets.map((p, i) => '<div class="gp-petpages" data-pet="'+i+'">'+petPage(p, i)+'</div>').join('') + waiverPage();
@@ -202,7 +200,7 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 /* family page */
 .gp-hd{display:flex;align-items:center;gap:.12in;height:1in}
 .gp-corgi{width:1.35in;height:1.05in}
-.gp-welcome{flex:1;text-align:center;font:58pt/1 "Alfa Slab One",Rockwell,serif;letter-spacing:.01em;background:linear-gradient(#ffd37a,#f7a531 45%,#e57e12 60%,#f6a43a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.2px #b85f0a;filter:drop-shadow(1.5px 2px 0 rgba(140,70,0,.35))}
+.gp-welcome{flex:1;text-align:center;font:58pt/1 "Alfa Slab One",Rockwell,serif;letter-spacing:.01em;color:#f9b54c;-webkit-text-stroke:1.2px #c46a10}
 .gp-beagle{width:1.05in;height:1in;align-self:flex-end;margin-left:-.3in;position:relative;z-index:0}
 .gp-welcome{position:relative;z-index:1}
 .gp-lodge{display:flex;align-items:flex-end;gap:.08in;margin:.02in 0 .06in .1in}
