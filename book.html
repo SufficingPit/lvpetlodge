@@ -414,7 +414,7 @@ function doneView(){
     h('div',{class:'card link'}, link),
     h('button',{class:'b2', onclick:e=>{ navigator.clipboard?.writeText(link).then(() => { e.target.textContent = 'Copied'; }); }}, 'Copy link')];
 }
-const LABEL = {pending:'Waiting for our reply', approved:'Booked', declined:'Not booked', cancelled:'Cancelled', expired:'Not booked'};
+const LABEL = {pending:'Waiting for our reply', approved:'Booked', declined:'Not booked', cancelled:'Cancelled', expired:'Not booked', deleted:'Cancelled'};
 function mineBox(){
   if(!MINE.length) return null;
   return h('div',{class:'card'}, h('span',{class:'lbl'}, MINE.length===1 ? 'Your request' : 'Your requests'),
@@ -490,7 +490,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
     if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:['dog','cat','other'].includes(p.species) ? p.species : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A', kind:p.kind||'', cage:p.cage!==false})); }
   // requests sent from this device that are still ahead
   Promise.all(MEM.reqs.map(x => rpc('request_status', {p_token:x.token}).then(st => st && {...x, status:st.status, names:st.pets.map(p => p.name).join(', ')}).catch(() => null)))
-    .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled'); draw(); });
+    .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled' && x.status!=='deleted'); draw(); });
   try { INFO = await rpc('booking_info'); F.month = INFO.today.slice(0,7); petsChanged(); }
   catch(e){ ERR = 'Couldn’t load. Check your connection and refresh.'; }
   draw();
