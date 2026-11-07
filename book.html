@@ -504,6 +504,28 @@ function mineBox(){
       h('span',{class:'grow'}, md(x.start)+' – '+md(x.end), h('small',{}, x.names)),
       h('span',{class:'st st-'+x.status}, LABEL[x.status] || x.status), h('span',{class:'mut'}, '›'))));
 }
+// What the request still needs before drop-off (the server works it out: form_needs). Never required:
+// they can always skip it and bring the paper form at drop-off.
+const listNames = n => n.length > 1 ? n.slice(0, -1).join(', ')+' and '+n[n.length-1] : n[0] || '';
+function formCard(s){
+  const f = s.form;
+  if(!f) return (s.status==='pending' || s.status==='approved') && h('div',{style:'margin-top:4px'}, 'First time with us? ', h('a',{href:'guest-form.html?r='+TOKEN}, 'Fill out the new guest form'), ' so it’s ready at drop-off.');
+  const go = (label) => h('a',{class:'b', href:'guest-form.html?r='+TOKEN, style:'display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:10px'}, label);
+  const paper = h('p',{class:'mut', style:'margin:10px 0 0;font-size:14px'}, 'Rather do it on paper? That’s fine, just bring it filled out at drop-off. ',
+    h('a',{href:'new-form-line-art.pdf', target:'_blank', rel:'noopener'}, 'Print a blank one'), '.');
+  if(f.sent) return h('div',{class:'card'}, h('b',{}, 'Guest form received'), h('div',{class:'mut'}, 'Thanks! Something changed? ', h('a',{href:'guest-form.html?r='+TOKEN}, 'Update it'), '.'));
+  const pets = f.newPets || [];
+  if(!f.family) return h('div',{class:'card'}, h('b',{}, 'First time with us? One more step'),
+    h('div',{class:'mut', style:'margin-top:4px'}, 'Before your first stay we need a new guest form: your details, a page for each pet, and our waiver. It takes about 10 minutes, and you can do it now or anytime before drop-off.'),
+    go('Fill out the guest form'), paper);
+  if(f.update) return h('div',{class:'card'}, h('b',{}, 'Please check your details'),
+    h('div',{class:'mut', style:'margin-top:4px'}, 'We’d like to make sure we have your latest information. It only takes a minute to look it over.'),
+    go('Review my guest form'), paper);
+  if(pets.length) return h('div',{class:'card'}, h('b',{}, 'New pet? We’ll need a page for '+listNames(pets)),
+    h('div',{class:'mut', style:'margin-top:4px'}, 'We have your family on file, but not '+listNames(pets)+' yet. Their page takes a few minutes.'),
+    go(pets.length > 1 ? 'Fill out their pages' : 'Fill out '+pets[0]+'’s page'), paper);
+  return h('p',{class:'mut', style:'margin:12px 0 0;font-size:14px'}, 'We have your guest form on file. Something changed? ', h('a',{href:'guest-form.html?update'}, 'Update it'), '.');
+}
 function statusView(){
   if(STATUS===null) return [header('Your request'), h('p',{class:'mut'},'Loading…')];
   if(!STATUS) return [header('Your request'), h('div',{class:'warn'}, 'We couldn’t find that request. Check the link.'), h('a',{href:location.pathname, class:'lk'}, 'Make a new request')];
@@ -511,8 +533,8 @@ function statusView(){
   const names = s.pets.map(p => p.name).join(', ');
   const link = location.origin + location.pathname + '?r=' + TOKEN;
   return [header('Your request'),
-    JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!'),
-      h('div',{style:'margin-top:4px'}, 'First time with us? ', h('a',{href:'guest-form.html'}, 'Fill out the new guest form'), ' so it’s ready at drop-off.')),
+    JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!')),
+    formCard(s),
     h('div',{class:s.status==='approved' ? 'ok' : waiting ? 'card' : 'warn'}, h('b',{}, LABEL[s.status] || s.status),
       waiting ? h('div',{class:'mut'}, 'We’ll text or call you soon. This page updates by itself.')
       : s.status==='approved' ? h('div',{}, 'See you then!') : null),

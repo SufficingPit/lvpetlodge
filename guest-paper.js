@@ -156,7 +156,8 @@ function guestPaper(d, base, opts){
       +ln('PRINTED NAME', 'sign.name', '', 'gp-pname')
       +'</div></section>';
   }
-  return familyPage() + pets.map((p, i) => '<div class="gp-petpages" data-pet="'+i+'">'+petPage(p, i)+'</div>').join('') + waiverPage();
+  // opts.petsOnly: just the pet pages (a family we already have, adding a pet)
+  return (opts.petsOnly ? '' : familyPage()) + pets.map((p, i) => '<div class="gp-petpages" data-pet="'+i+'">'+petPage(p, i)+'</div>').join('') + (opts.petsOnly ? '' : waiverPage());
 }
 
 // the first line of each multi-line answer starts after its label
