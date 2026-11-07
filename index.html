@@ -82,7 +82,7 @@ section.tint{background:var(--soft)}
 /* pricing */
 .price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .price:last-child{border-bottom:0}
-.price b{font-size:24px;color:var(--pri)}
+.price b{font-size:24px;color:var(--pri);white-space:nowrap;flex:none}
 .price span small{display:block;color:var(--mut);font-size:14px}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 .two>*,.grid3>*{min-width:0}
@@ -141,7 +141,6 @@ footer a{color:var(--mut)}
       <a class="btn" href="book.html">Check open spots</a>
       <a class="btn alt telLink" id="heroPhone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span></span></a>
     </div>
-  </div>
     <div id="mine" hidden></div>
   </div>
   <div class="pic"><img id="heroImg" alt="" width="1600" height="1200"><span class="tag" id="heroTag"></span></div>
