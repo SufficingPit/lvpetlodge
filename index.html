@@ -66,7 +66,7 @@ nav .btn{min-height:40px;padding:0 16px;margin-left:6px;font-size:15px}
 section{padding:56px 0}
 section.tint{background:var(--soft)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:820px){.grid3{grid-template-columns:1fr}}
+@media(max-width:820px){.grid3{grid-template-columns:minmax(0,1fr)}}
 .card{background:var(--card);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
 .card .ic{width:46px;height:46px;border-radius:14px;background:var(--soft);color:var(--pri);display:grid;place-items:center;margin-bottom:12px}
 .card .ic svg{width:26px;height:26px}
@@ -77,8 +77,11 @@ section.tint{background:var(--soft)}
 .price:last-child{border-bottom:0}
 .price b{font-size:24px;color:var(--pri)}
 .price span small{display:block;color:var(--mut);font-size:14px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media(max-width:820px){.two{grid-template-columns:1fr}}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.two>*,.grid3>*{min-width:0}
+/* long words (an email address) wrap instead of pushing the page wider than the phone */
+main,footer{overflow-wrap:anywhere}
+@media(max-width:820px){.two{grid-template-columns:minmax(0,1fr)}}
 /* gallery */
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .gal button{padding:0;border:0;background:none;cursor:zoom-in;border-radius:14px;overflow:hidden;position:relative;aspect-ratio:1/1}
@@ -99,6 +102,7 @@ section.tint{background:var(--soft)}
 .contact a.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
 .contact a.row:last-child{border-bottom:0}
 .contact .row svg{width:22px;height:22px;color:var(--pri);flex:none}
+.contact .row>span{min-width:0;overflow-wrap:anywhere}
 .contact .row small{display:block;color:var(--mut);font-size:14px}
 .map{border-radius:16px;background:#fff;border:1px solid var(--line)}
 .gmap{display:block;width:100%;aspect-ratio:4/3;border:0;border-radius:16px;background:var(--soft)}
@@ -147,7 +151,7 @@ footer a{color:var(--mut)}
   <div class="grid3" id="cards"></div>
   <p class="note" id="vaxNote"></p>
   <div class="card" style="margin-top:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between">
-    <div><h3 style="margin:0 0 4px">New here?</h3><span class="mut">Fill out the new guest forms ahead of time and bring them along at drop-off or email them to littlevillagepetlodge@outlook.com. Otherwise, they can be filled out in person at drop-off.</span></div>
+    <div style="flex:1 1 240px;min-width:0"><h3 style="margin:0 0 4px">New here?</h3><span class="mut">Fill out the new guest forms ahead of time and bring them along at drop-off or email them to littlevillagepetlodge@outlook.com. Otherwise, they can be filled out in person at drop-off.</span></div>
     <a class="btn alt" href="new-guest-forms.pdf" target="_blank" rel="noopener">New guest forms (PDF)</a>
   </div>
 </div></section>
