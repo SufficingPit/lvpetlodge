@@ -535,7 +535,6 @@ function statusView(){
   const link = location.origin + location.pathname + '?r=' + TOKEN;
   return [header('Your request'),
     JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!')),
-    formCard(s),
     h('div',{class:s.status==='approved' ? 'ok' : waiting ? 'card' : 'warn'}, h('b',{}, LABEL[s.status] || s.status),
       waiting ? h('div',{class:'mut'}, 'We’ll text or call you soon. This page updates by itself.')
       : s.status==='approved' ? h('div',{}, 'See you then!') : null),
@@ -544,6 +543,7 @@ function statusView(){
       h('div',{}, h('b',{}, 'Drop-off '), wmd(s.start)+', '+t12(s.arr)),
       h('div',{}, h('b',{}, 'Pickup '), wmd(s.end)+', '+t12(s.pick)),
       h('div',{class:'mut'}, names)),
+    formCard(s),
     // while it's waiting they can take it back or change it; once booked, they call
     waiting && (CONFIRM
       ? h('div',{class:'card'}, h('p',{}, CONFIRM==='change' ? 'Change it? This request is cancelled and a new one opens with your details filled in.' : 'Cancel this request?'),
