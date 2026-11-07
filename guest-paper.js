@@ -18,13 +18,14 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const PAW = '<path d="M12.1 11.2c-3.3 0-6.4 3.7-6.4 6.5 0 2.1 1.6 3.1 3.5 3.1 1.2 0 2-.7 2.9-.7s1.7.7 2.9.7c1.9 0 3.5-1 3.5-3.1 0-2.8-3.1-6.5-6.4-6.5z"/><ellipse cx="5.6" cy="9.3" rx="2.3" ry="2.9" transform="rotate(-18 5.6 9.3)"/><ellipse cx="9.7" cy="5.4" rx="2.3" ry="3" transform="rotate(-6 9.7 5.4)"/><ellipse cx="14.6" cy="5.4" rx="2.3" ry="3" transform="rotate(6 14.6 5.4)"/><ellipse cx="18.7" cy="9.3" rx="2.3" ry="2.9" transform="rotate(18 18.7 9.3)"/>';
 const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';fill:'+color+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
 // a little trail of black paw prints walking along a line
-function trail(n){
+function trail(n, back){
   let g = '';
   for(let i = 0; i < n; i++){ const x = 6 + i*15, y = i % 2 ? 4 : 13;
     g += '<g transform="translate('+x+' '+y+') rotate('+(i % 2 ? 100 : 80)+' 5 5) scale(.42)">'+PAW+'</g>'; }
-  return '<svg class="gp-trail" viewBox="0 0 '+(n*15+8)+' 26" preserveAspectRatio="xMidYMid meet">'+g+'</svg>';
+  const w = n*15+8;   // back: the right-hand trail walks left, toward the title
+  return '<svg class="gp-trail" viewBox="0 0 '+w+' 26" preserveAspectRatio="xMidYMid meet">'+(back ? '<g transform="translate('+w+' 0) scale(-1 1)">'+g+'</g>' : g)+'</svg>';
 }
-const band = (title, cls, n) => '<div class="gp-band">'+trail(n || 8)+'<span class="'+cls+'">'+title+'</span>'+trail(n || 8)+'</div>';
+const band = (title, cls, n) => '<div class="gp-band">'+trail(n || 8)+'<span class="'+cls+'">'+title+'</span>'+trail(n || 8, true)+'</div>';
 const fmtDate = v => { if(!v) return ''; const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v); return m ? (+m[2])+'/'+(+m[3])+'/'+m[1] : v; };
 const get = (o, path) => path.split('.').reduce((a, k) => a == null ? undefined : a[k], o);
 
@@ -134,16 +135,16 @@ function guestPaper(d, base, opts){
     const S = D.sign || {};
     const signed = S.img ? '<img class="gp-sig" src="'+esc(S.img)+'" alt="">' : '';
     return '<section class="gp-pg gp-waiver"><div class="gp-frame">'
-      +'<div class="gp-wtop">'+img('corgipup', 'wt1')+'<div class="gp-wt"><span>Consent for Medical Care and Legal Waiver</span></div>'+img('dogbone', 'wt2')+'</div>'
+      +'<div class="gp-wtop">'+img('wcat', 'wt1')+'<div class="gp-wt"><span>Consent for Medical Care and Legal Waiver</span></div>'+img('dogbone', 'wt2')+'</div>'
       +'<p class="gp-c gp-caps">NOTE PICK UP AND DROP OFF TIMES! EXTRA CHARGE OF $10.00 IF NECESSARY</p>'
       +'<p class="gp-in1">Little Village Pet Lodge cares about every pet! We will do everything possible to make their stay with us a happy, safe, and well cared for time. Pet owner specifically represents to kennel that pet has not been exposed to any contagious diseases within the last 30 days and that all vaccinations are up to date. It is understood that any animal found to be harboring any type of external parasite will be treated accordingly at the expense of the pet owner.</p>'
       +'<p class="gp-in1">Pet owner agrees to pay rate for boarding in effect on the date pet is checked into kennel plus any extra fees incurred. Pet owner further agrees to pay all costs and charges for our services before pet is released. ANY ANIMAL LEFT FOR 10 DAYS AFTER SCHEDULED PICK UP DATE, WITHOUT NOTIFICATION TO KENNEL, IS DEEMED ABANDONED AND WILL BE SUBJECT TO DISPOSAL AT LITTLE VILLAGE PET LODGE’S DISCRETION.</p>'
       +'<p class="gp-in1">Little Village Pet Lodge will exercise reasonable care for all pets. If the occasion should arise that pet becomes ill, or the state of animal’s health otherwise requires professional attention, Kennel will contact</p>'
-      +'<div class="gp-vet"><p>NORTH PARK ANIMAL HOSPITAL<br>1625 BURLINGTON ST<br>HOLDREGE, NE 68949<br>(308) 995-2419</p>'+img('puppy', 'vp')+img('greycat', 'vc')+'</div>'
+      +'<div class="gp-vet"><p>NORTH PARK ANIMAL HOSPITAL<br>1625 BURLINGTON ST<br>HOLDREGE, NE 68949<br>(308) 995-2419</p>'+img('wpup', 'vp')+img('wgrey', 'vc')+'</div>'
       +'<p>All fees for emergency call to North Park Veterinarian will be paid by Pet Owner before pet’s release.</p>'
       +'<p class="gp-in1">Liability of kennel shall in no event exceed the lesser of the current value of a pet of same species, or the sum of $300 per pet while it is in the care of the kennel. Furthermore, Little Village Pet Lodge is NOT responsible if there is an unfortunate event or death of pet after all attempts are made to keep your pet safe and healthy. We are dedicated to ensuring you with Peace of Mind, Educated with Knowledge, and have our Hearts filled with love for all Furbabies!</p>'
       +'<p class="gp-in1">If your pet is scheduled for a pick up or drop off by our kennel vehicle, kennel/driver shall not be held responsible for vehicle accidents, injuries, natural disasters, or death. Pet owner further agrees to be solely responsible for any and all acts or behavior of said pet while it is in the care of the kennel.</p>'
-      +'<div class="gp-ack">'+box('', 'agree', 'yes', 'bool', !!D.agree)+'<p>I hereby acknowledge that the above information is correct and that I have read the above contract and agree as owner or representative of the animal to the foregoing terms.</p>'+img('cat2', 'ackc')+'</div>'
+      +'<div class="gp-ack">'+box('', 'agree', 'yes', 'bool', !!D.agree)+'<p>I hereby acknowledge that the above information is correct and that I have read the above contract and agree as owner or representative of the animal to the foregoing terms.</p>'+img('wblack', 'ackc')+'</div>'
       +'<div class="gp-sign">'
         +'<div class="gp-fl gp-s1"><span class="gp-lb">SIGN</span>'
           +(E ? '<button type="button" class="gp-ln gp-signbtn" data-sign="1">'+(signed || '<span class="gp-tap">Tap here to sign</span>')+'</button>' : '<span class="gp-ln">'+signed+'</span>')+'</div>'
@@ -272,7 +273,7 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 /* the waiver */
 .gp-waiver{font:10.5pt/1.36 Carlito,Calibri,"Segoe UI",sans-serif}
 .gp-wtop{display:flex;align-items:center;gap:.2in;height:.85in;margin:0 0 .04in}
-.gp-wt1{width:.75in;height:.8in}.gp-wt2{width:.85in;height:.72in}
+.gp-wt1{width:.8in;height:.9in}.gp-wt2{width:.85in;height:.72in}
 .gp-wt{flex:1;text-align:center}
 .gp-wt span{font:17pt/1.15 Caladea,Cambria,Georgia,serif;color:#1f4db5}
 .gp-waiver p{margin:0 0 .075in}
@@ -280,12 +281,12 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-in1{text-indent:.45in}
 .gp-vet{display:flex;align-items:center;gap:.4in;margin:.02in 0 .08in}
 .gp-vet p{margin:0!important}
-.gp-vp{width:.65in;height:.6in;margin-left:.5in}.gp-vc{width:.85in;height:.65in}
+.gp-vp{width:.65in;height:.85in;margin-left:.5in}.gp-vc{width:.65in;height:.85in}
 .gp-ack{display:flex;align-items:flex-start;gap:.08in;margin-top:.04in}
 .gp-ack .gp-cb{margin:.03in 0 0}
 .gp-ack .gp-cb i{width:.16in;height:.16in}
 .gp-ack p{flex:1;margin:0!important;font-weight:700}
-.gp-ackc{width:.75in;height:.6in;flex:none}
+.gp-ackc{width:.75in;height:.75in;flex:none}
 .gp-sign{display:flex;gap:.35in;margin:.18in 0 .06in}
 .gp-s1{flex:2.4}.gp-s2{flex:1}
 .gp-s1 .gp-ln{height:.45in;position:relative;overflow:visible}
