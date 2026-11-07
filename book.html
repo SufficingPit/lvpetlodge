@@ -90,13 +90,17 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 .tsh{background:var(--bg);width:100%;max-width:520px;max-height:80vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(min-width:660px){.tov{align-items:center}.tsh{border-radius:18px}}
-.tlist{overflow:auto;padding:0 12px 16px}
-.tgrp{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:12px 4px 6px}
-.trow{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border:0;border-radius:10px;background:none;font-size:17px}
-.trow:hover{background:var(--card)}
-.trow.on{background:var(--pri);color:var(--onp)}
-.tfee{font-size:14px;font-weight:700;color:var(--warnfg);background:var(--warnbg);padding:2px 8px;border-radius:999px}
-.trow.on .tfee{background:rgba(255,255,255,.2);color:inherit}
+.wheels{position:relative;display:flex;justify-content:center;align-items:center;gap:6px;padding:8px 16px}
+.whl{position:absolute;left:16px;right:16px;top:calc(8px + 80px);height:40px;border-radius:10px;background:var(--card);box-shadow:var(--shadow);pointer-events:none}
+.wheel{position:relative;height:200px;width:72px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.wheel::-webkit-scrollbar{display:none}
+.wheel .sp{height:80px}
+.wheel .wi{height:40px;line-height:40px;text-align:center;font-size:22px;scroll-snap-align:center;color:var(--mut);cursor:pointer}
+.wheel .wi.sel{color:var(--ink);font-weight:700}
+.colon{position:relative;font-size:22px;font-weight:700}
+.tstat{margin:6px 16px 10px;padding:10px 12px;border-radius:12px;font-size:15px}
+.tstat.ok{background:var(--pri-soft)}
+.tstat.fee{background:var(--warnbg);color:var(--warnfg)}
 .est .el{font-size:15px;padding:4px 0;align-items:flex-start}
 .est .el span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
 .est .tot{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-size:17px}
@@ -350,21 +354,48 @@ function timePick(day, k, label){
       h('span',{}, t ? t12(t) : 'Pick a time'), h('span',{class:'mut'}, '▾')),
     timeNote(day, k));
 }
-// the time list: her hours first, then the other times with their fee
+// the time picker: wheels for hour, minutes and AM/PM, with a line that says what the
+// chosen time costs (her hours, the evening pickup fee, or the outside-hours fee)
+const IH = 40;   // wheel row height
+function wheel(values, cur, onChange, label){
+  let idx = Math.max(0, values.findIndex(v => v[0]===cur));
+  const items = values.map(([v, l], i) => h('div',{class:'wi'+(i===idx ? ' sel' : ''), onclick:()=>el.scrollTo({top:i*IH, behavior:'smooth'})}, l));
+  const el = h('div',{class:'wheel', role:'listbox', 'aria-label':label, tabindex:'0'}, h('div',{class:'sp'}), items, h('div',{class:'sp'}));
+  el.onscroll = () => { const i = Math.max(0, Math.min(values.length-1, Math.round(el.scrollTop/IH)));
+    if(i!==idx){ items[idx].classList.remove('sel'); items[i].classList.add('sel'); idx = i; onChange(values[i][0]); } };
+  el.onkeydown = e => { if(e.key==='ArrowDown' || e.key==='ArrowUp'){ e.preventDefault(); el.scrollTo({top:(idx+(e.key==='ArrowDown' ? 1 : -1))*IH, behavior:'smooth'}); } };
+  requestAnimationFrame(() => { el.scrollTop = idx*IH; });
+  return el;
+}
+const hoursText = day => { const w = INFO.hours?.[parseD(day).getDay()] || [];
+  return w.length ? 'Our hours this day: '+w.map(([a, b]) => t12(a).replace(':00','')+'–'+t12(b).replace(':00','')).join(', ') : 'We have no drop-off or pickup hours this day.'; };
+function feeLine(day, k, t){
+  if(!inHours(day, t)) return INFO.fee ? ['fee', '+$'+INFO.fee+': that’s outside our drop-off and pickup hours.'] : ['ok', 'Outside our usual hours.'];
+  if(eveTime(k, t)) return ['fee', '+$'+INFO.eveFee+': pickup during evening hours covers their evening meal. No charge if you bring their food.'];
+  return ['ok', 'In our hours, no extra charge.'];
+}
 function timeSheet(){
   if(!PICK) return null;
-  const {day, k, label} = PICK, all = [...Array(31)].map((_, i) => fromMin(6*60 + i*30));   // 6 AM to 9 PM
-  const open = all.filter(t => inHours(day, t)), other = all.filter(t => !inHours(day, t));
-  const row = t => { const f = timeFee(day, k, t);
-    return h('button',{class:'trow'+(F[k]===t ? ' on' : ''), onclick:()=>{ F[k] = t; PICK = null; draw(); }},
-      h('span',{}, t12(t)), f ? h('span',{class:'tfee'}, '+$'+f) : h('span',{}, '')); };
+  const {day, k, label} = PICK;
+  const P = PICK.v ||= (() => { const w = INFO.hours?.[parseD(day).getDay()] || []; const t = F[k] || (w[0] ? w[0][0] : '09:00');
+    const H = +t.slice(0,2), M = Math.round(+t.slice(3)/15)*15 % 60; return {h:((H+11)%12)+1, m:M, pm:H>=12}; })();
+  const val = () => pad2((P.h % 12) + (P.pm ? 12 : 0))+':'+pad2(P.m);
+  const status = h('div',{class:'tstat'});
+  const show = () => { const [kind, text] = feeLine(day, k, val()); status.className = 'tstat '+kind; status.textContent = text; };
+  const set = (key, v) => { P[key] = v; show(); };
   const close = () => { PICK = null; draw(); };
+  show();
   return h('div',{class:'tov', onclick:e=>{ if(e.target===e.currentTarget) close(); }},
     h('div',{class:'tsh', role:'dialog', 'aria-label':label+' time'},
-      h('div',{class:'row', style:'padding:14px 16px 6px'}, h('b',{style:'font-size:18px'}, label+' · '+wmd(day)), h('button',{class:'lk', onclick:close}, 'Close')),
-      h('div',{class:'tlist'},
-        open.length ? [h('div',{class:'tgrp'}, 'Our hours'), open.map(row)] : h('div',{class:'tgrp'}, 'No drop-off or pickup hours this day'),
-        other.length > 0 && [h('div',{class:'tgrp'}, 'Other times'), other.map(row)])));
+      h('div',{style:'padding:16px 16px 4px'}, h('b',{style:'font-size:18px'}, label+' · '+wmd(day)), h('div',{class:'mut', style:'margin-top:2px'}, hoursText(day))),
+      h('div',{class:'wheels'}, h('div',{class:'whl'}),
+        wheel([...Array(12)].map((_, i) => [i+1, String(i+1)]), P.h, v=>set('h', v), 'Hour'),
+        h('div',{class:'colon'}, ':'),
+        wheel([0,15,30,45].map(m => [m, pad2(m)]), P.m, v=>set('m', v), 'Minutes'),
+        wheel([[false,'AM'],[true,'PM']], P.pm, v=>set('pm', v), 'AM or PM')),
+      status,
+      h('div',{class:'two', style:'padding:4px 16px 16px'}, h('button',{class:'b2', onclick:close}, 'Cancel'),
+        h('button',{class:'b', onclick:()=>{ F[k] = val(); PICK = null; draw(); }}, 'Set time'))));
 }
 let PICK = null;
 
@@ -422,8 +453,8 @@ function formView(){
       F.end && h('div',{class:'mut'}, plural(nights,'night')),
       F.end && (!CHECK ? h('p',{class:'mut', style:'margin:8px 0 0'}, 'Checking…')
         : !CHECK.ok ? h('div',{class:'warn'}, CHECK.reason)
-        : enough ? h('div',{class:'ok'}, h('b',{}, 'Good news, there’s room those dates.'), want && h('div',{class:'mut', style:'margin-top:2px'}, 'You’ll need '+want+'.'))
-        : h('div',{class:'warn'}, 'Not enough room for those dates'+(want ? ' (you need '+want+')' : '')+'. Try other days.'))),
+        : enough ? h('div',{class:'ok'}, h('b',{}, 'Good news, we have room for '+(F.pets.length===1 ? petLabel(F.pets[0], 0) : F.pets.length > 3 ? 'all your pets' : listOf(F.pets.map(petLabel)))+' those dates.'))
+        : h('div',{class:'warn'}, 'Sorry, we don’t have room for '+(F.pets.length===1 ? petLabel(F.pets[0], 0) : 'all of them')+' those dates. Try other days, or call us.'))),
     ERR && !F.end && h('div',{class:'err'}, ERR),
     enough && [
       h('h2',{}, '3. Times'),
