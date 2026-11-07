@@ -40,7 +40,7 @@ nav::-webkit-scrollbar{display:none}
 nav a{white-space:nowrap;text-decoration:none;color:var(--ink);font-weight:600;font-size:15px;padding:8px 12px;border-radius:999px}
 nav a:hover{background:var(--soft)}
 nav .btn{min-height:40px;padding:0 16px;margin-left:6px;font-size:15px}
-@media(max-width:820px){.bar{flex-wrap:wrap;padding-bottom:8px}nav{margin-left:0;width:100%;order:3}.bar .btn.top{margin-left:auto}nav .btn{display:none}}
+@media(max-width:820px){.bar{flex-wrap:wrap;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:8px;row-gap:6px}nav{margin-left:0;width:100%;order:3}.bar .btn.top{margin-left:auto}nav .btn{display:none}}
 @media(min-width:821px){.bar .btn.top{display:none}}
 /* hero */
 .hero{padding:40px 0 24px}
@@ -233,9 +233,17 @@ function draw(c){
     const t = el('div'); paras(t, k.text); const v = el('div','vax', k.vax); d.append(ic, el('h3', null, k.title), t, v); return d; }));
   $('vaxNote').textContent = c.vaxNote; $('vaxNote').hidden = !c.vaxNote;
   const row = (label, sub, price) => { const r = el('div','price'), s = el('span', null, label); if(sub) s.append(el('small', null, sub)); r.append(s, el('b', null, price)); return r; };
-  $('prices').replaceChildren(...c.prices.filter(p => p.label).map(p => row(p.label, p.sub, p.price)));
-  $('extras').replaceChildren(...c.extras.filter(p => p.label).map(p => row(p.label, '', p.price)));
-  $('shareNote').textContent = c.shareNote; $('payNote').textContent = c.payNote;
+  // prices come from the app's Settings > Rates (the same numbers as bills and the request
+  // page's estimate); the typed list is only a fallback until those load
+  const R = INFO && INFO.rates, $$ = n => '$'+(Number.isInteger(n) ? n : n.toFixed(2));
+  const prices = R ? [['Dogs','per dog',$$(R.dog)], ['Cats','per cat',$$(R.cat)], ['Other pets','per pet',$$(R.other)]].map(([label, sub, price]) => ({label, sub, price})) : c.prices;
+  const extras = R ? [INFO.eveFee && {label:'Pickup during evening hours (covers their evening meal; no charge if you bring their food)', price:'+'+$$(INFO.eveFee)},
+      INFO.fee && {label:'Drop-off or pickup outside hours', price:'+'+$$(INFO.fee)}, R.meds && {label:'Medications given', price:'+'+$$(R.meds)}].filter(Boolean) : c.extras;
+  const share = R ? (R.share ? 'Two pets sharing a kennel, condo or enclosure: '+$$(R.share)+' off each, per night. For example, two dogs in one kennel are '+$$(R.dog-R.share)+' each, '+$$(2*(R.dog-R.share))+' a night.' : '') : c.shareNote;
+  const pay = R && R.card != null ? String(c.payNote||'').replace(/\d+(\.\d+)?\s*%/, R.card+'%') : c.payNote;
+  $('prices').replaceChildren(...prices.filter(p => p.label).map(p => row(p.label, p.sub, p.price)));
+  $('extras').replaceChildren(...extras.filter(p => p.label).map(p => row(p.label, '', p.price)));
+  $('shareNote').textContent = share; $('shareNote').hidden = !share; $('payNote').textContent = pay;
   PHOTOS = c.photos;
   $('gal').replaceChildren(...c.photos.map((p, i) => { const b = el('button'); b.setAttribute('aria-label', 'Open photo'+(p.cap ? ': '+p.cap : ''));
     const im = el('img'); im.src = p.sm || p.src; im.alt = p.cap || ''; im.loading = 'lazy'; im.width = 640; im.height = 480; b.append(im);
@@ -255,8 +263,9 @@ function draw(c){
   $('mapLink').href = 'https://www.google.com/maps/search/?api=1&query=40.5547,-99.29015';
   paras($('dirText'), c.directions);
 }
-draw(DEFAULT);
-rpc('site_content').then(c => { if(c && c.v) draw({...DEFAULT, ...c}); }).catch(() => {});
+let CONTENT = DEFAULT, INFO = null;
+draw(CONTENT);
+rpc('site_content').then(c => { if(c && c.v){ CONTENT = {...DEFAULT, ...c}; draw(CONTENT); } }).catch(() => {});
 
 // full-screen photo viewer
 const lb = $('lb'), lbImg = lb.querySelector('img'), lbCap = lb.querySelector('p');
@@ -273,6 +282,7 @@ lb.addEventListener('touchend', e => { if(tx==null) return; const d = e.changedT
 const t12 = t => { const [a,b] = t.split(':'); return ((+a+11)%12+1)+(b==='00' ? '' : ':'+b)+(+a<12 ? ' AM' : ' PM'); };
 const span = ([a,b]) => { const x = t12(a), y = t12(b); return x.slice(-2)===y.slice(-2) ? x.slice(0,-3)+'–'+y : x+'–'+y; };
 rpc('booking_info').then(info => {
+  if(info){ INFO = info; draw(CONTENT); }
   if(!info || !Array.isArray(info.hours)) return;
   const D = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], lines = [];
   info.hours.forEach((w, i) => { const t = w.length ? w.map(span).join(' and ') : 'Closed', last = lines[lines.length-1];
