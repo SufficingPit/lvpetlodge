@@ -148,7 +148,8 @@ let saveT = null;
 const saveDraft = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(DRAFT, JSON.stringify(F)); } catch(e) {} }, 300); };
 let ERR = '', SENDING = false, DONE = false, SIGNING = false;
 // the paper form is the default on bigger screens; on a phone the simple form is easier to type into
-let VIEW = (() => { try { const v = localStorage.getItem('lvpl-guest-view'); if(v==='paper' || v==='simple') return v; } catch(e) {} return innerWidth >= 760 ? 'paper' : 'simple'; })();
+// The simple (card-by-card) form is switched off for now; simpleView() is kept so it can come back.
+let VIEW = 'paper';
 const setView = v => { VIEW = v; try { localStorage.setItem('lvpl-guest-view', v); } catch(e) {} draw(); scrollTo(0, 0); };
 
 /* ---------- inputs ---------- */
@@ -261,9 +262,7 @@ const WAIVER = [
 function formView(){
   return [h('h1',{}, 'New guest form'),
     h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off. Want it on paper? ', h('a',{href:'new-form-line-art.pdf', target:'_blank', rel:'noopener'}, 'Print a blank one'), '.'),
-    h('div',{class:'views', role:'group', 'aria-label':'How to fill it out'},
-      [['paper','Paper form'],['simple','Simple form']].map(([v, l]) => h('button',{type:'button', class:VIEW===v ? 'on' : '', 'aria-pressed':VIEW===v ? 'true' : 'false', onclick:()=>{ if(VIEW!==v) setView(v); }}, l))),
-    h('p',{class:'mut', style:'font-size:13px'}, VIEW==='paper' ? 'Tap a line to write on it and a box to tick it. Switch to the simple form anytime; your answers carry over.' : 'Same questions as the paper form, one at a time. Switch back anytime; your answers carry over.'),
+    h('p',{class:'mut', style:'font-size:13px'}, 'Tap a line to write on it and a box to tick it.'),
     VIEW==='paper' ? paperView() : simpleView(),
     ERR && h('div',{class:'err', id:'err'}, ERR),
     h('button',{class:'b', style:'margin-top:16px', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send to Little Village'),
