@@ -37,7 +37,7 @@ button:disabled{cursor:default}
 .b2{min-height:46px;padding:0 16px;border:1px solid var(--field);border-radius:12px;background:var(--card);font-weight:600}
 .lk{border:0;background:none;color:var(--pri);font-weight:600;padding:8px 4px;min-height:40px}
 .lk.bad{color:var(--bad)}
-.err{color:var(--bad);font-weight:600;font-size:15px;margin:10px 0}
+.err{color:var(--bad);font-weight:600;font-size:15px;line-height:1.4;margin:12px 0;padding:11px 13px;border:1.5px solid var(--bad);border-radius:12px;background:color-mix(in srgb, var(--bad) 8%, var(--card))}
 .warn{background:var(--warnbg);color:var(--warnfg);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:15px}
 .ok{background:var(--pri-soft);color:var(--ink);border-radius:12px;padding:12px 14px;margin:10px 0}
 .lbl{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:0 0 5px}
@@ -202,7 +202,7 @@ const nightOpen = d => { const x = DAYS[d]; if(!x) return null; const n = need()
 async function loadMonth(y, m){
   const from = ymdOf(new Date(y, m, 1)), to = ymdOf(new Date(y, m+1, 1));
   try { (await rpc('booking_days', {p_from:from, p_to:to})).forEach(r => DAYS[r.day] = r); }
-  catch(e){ ERR = 'Couldn’t load open dates. Check your connection and refresh.'; }
+  catch(e){ ERR = navigator.onLine===false ? 'We couldn’t load the open dates because the connection dropped. Please refresh once you’re back online.' : 'Sorry, we couldn’t load the open dates just now. Please refresh the page in a minute, or call or text us at '+CALL_TEXT+'.'; }
   draw();
 }
 async function check(){
@@ -210,7 +210,7 @@ async function check(){
   if(!F.start || !F.end) return;
   const s = F.start, e = F.end;
   try { const c = await rpc('booking_check', {p_start:s, p_end:e}); if(F.start===s && F.end===e){ CHECK = c; draw(); } }
-  catch(err){ CHECK = {ok:false, reason:'Couldn’t check those dates. Try again.'}; draw(); }
+  catch(err){ CHECK = {ok:false, reason:'Sorry, we couldn’t check those dates just now. Please try again in a minute.'}; draw(); }
 }
 
 /* ---------- pieces ---------- */
@@ -412,6 +412,22 @@ function input(k, label, a = {}){
       oninput:e => { F[k] = e.target.value; }, onchange:e => { if(k==='phone') e.target.value = F.phone = fmtPhone(F.phone); }}, a.area ? F[k] : null));
 }
 
+
+/* ---------- error messages people can understand ----------
+   Messages about something they can fix (a missing name, no open spots...) are shown as the
+   server sent them. Anything technical becomes a plain, kind message: it didn't go through,
+   their answers are still here, try again, or call or text us. */
+const FIXABLE = /^(Pick your dates|Enter your name|Enter a phone|Pick drop-off|Add your pets|Check your pets|Say what kind|Pick dog, cat|A dog and a cat|Not enough open spots|You already have a request|We\u2019re getting a lot|Sign the form|Online requests aren\u2019t set up)/;
+const CALL_TEXT = '(308) 233-2652';
+const oops = what => 'Sorry, something went wrong on our side and your '+what+' didn\u2019t go through. Your answers are still here, so please try again in a minute. If it keeps happening, call or text us at '+CALL_TEXT+'.';
+const offline = what => 'Your '+what+' didn\u2019t go through because the connection dropped. Your answers are still here, so try again once you\u2019re back online.';
+const ROBOT_LOAD = 'The quick \u201cI\u2019m not a robot\u201d check didn\u2019t load. Please refresh the page and try again.';
+const ROBOT_FAIL = 'The quick \u201cI\u2019m not a robot\u201d check didn\u2019t go through. Please try sending again.';
+// a reply from the server that wasn't ok
+const reasonText = (r, what) => !r ? oops(what) : /human check/i.test(r) ? ROBOT_FAIL : FIXABLE.test(r) ? r : oops(what);
+// something that threw on the way (no connection, robot check, a bad reply)
+const thrownText = (e, what) => /didn.t load/.test(e && e.message || '') ? ROBOT_LOAD : /human check/i.test(e && e.message || '') ? ROBOT_FAIL
+  : (navigator.onLine===false || e instanceof TypeError) ? offline(what) : oops(what);
 async function send(){
   ERR = '';
   const n = F.pets.findIndex(p => !p.name.trim() || (p.species==='other' && !(p.kind||'').trim()));
@@ -428,14 +444,14 @@ async function send(){
       body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
         ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined,
         meds:p.medsOn && (p.meds||'').trim() ? p.meds.trim() : undefined, note:(p.note||'').trim() || undefined}))}})});
-    const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
+    const r = await res.json().catch(() => ({ok:false}));
     if(r.ok){
       MEM.reqs = [{token:r.token, start:F.start, end:F.end}, ...MEM.reqs.filter(x => x.token!==r.token)].slice(0, 8);
       MEM.me = {ownFood:F.ownFood, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage, medsOn:!!p.medsOn, meds:p.meds||'', note:p.note||''}))};
       saveMem(); try { sessionStorage.setItem('lvpl-new', r.token); } catch(e) {}
       location.assign('?r='+r.token); return; }
-    else { ERR = r.reason; if(/spots|closed|soon|far|shortest/i.test(r.reason)){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
-  } catch(e){ ERR = /human check/.test(e.message) ? e.message : 'Couldn’t send. Check your connection and try again.'; }
+    else { ERR = reasonText(r.reason, 'request'); if(/spots|closed|soon|far|shortest/i.test(r.reason || '')){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
+  } catch(e){ ERR = thrownText(e, 'request'); }
   SENDING = false; draw();
 }
 
@@ -527,7 +543,7 @@ async function cancelIt(change){
     if(!ok){ ERR = 'This request was already answered, so it can’t be changed here. Please call or text us.'; }
     else if(change){ location.href = location.pathname; return; }
     CONFIRM = false; await refresh();
-  } catch(e){ ERR = 'Couldn’t reach us. Check your connection and try again.'; }
+  } catch(e){ ERR = navigator.onLine===false ? 'That didn’t go through because the connection dropped. Please try again once you’re back online.' : 'Sorry, something went wrong on our side and that didn’t go through. Please try again in a minute, or call or text us at '+CALL_TEXT+'.'; }
   draw();
 }
 async function refresh(){
@@ -565,7 +581,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
   Promise.all(MEM.reqs.map(x => rpc('request_status', {p_token:x.token}).then(st => st && {...x, status:st.status, names:st.pets.map(p => p.name).join(', ')}).catch(() => null)))
     .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled' && x.status!=='deleted'); draw(); });
   try { INFO = await rpc('booking_info'); F.month = INFO.today.slice(0,7); petsChanged(); }
-  catch(e){ ERR = 'Couldn’t load. Check your connection and refresh.'; }
+  catch(e){ ERR = navigator.onLine===false ? 'This page couldn’t load because the connection dropped. Please refresh once you’re back online.' : 'Sorry, this page couldn’t load just now. Please refresh in a minute, or call or text us at '+CALL_TEXT+'.'; }
   draw();
 })();
 </script>

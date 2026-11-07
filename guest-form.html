@@ -37,7 +37,7 @@ button{cursor:pointer}
 .b2{min-height:46px;padding:0 16px;border:1px solid var(--field);border-radius:12px;background:var(--card);font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)}
 .lk{border:0;background:none;color:var(--pri);font-weight:600;padding:8px 4px;min-height:40px}
 .lk.bad{color:var(--bad)}
-.err{color:var(--bad);font-weight:600;font-size:15px;margin:10px 0}
+.err{color:var(--bad);font-weight:600;font-size:15px;line-height:1.4;margin:12px 0;padding:11px 13px;border:1.5px solid var(--bad);border-radius:12px;background:color-mix(in srgb, var(--bad) 8%, var(--card))}
 .ok{background:var(--pri-soft);color:var(--ink);border-radius:12px;padding:12px 14px;margin:10px 0}
 .lbl{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:0 0 5px}
 .f{display:block;margin-bottom:12px}
@@ -503,6 +503,22 @@ function problem(){
   if(F.sign.name.trim().length < 2) return P ? 'Print your name under your signature on the last page.' : 'Type your full name under the waiver.';
   return '';
 }
+
+/* ---------- error messages people can understand ----------
+   Messages about something they can fix (a missing name, no open spots...) are shown as the
+   server sent them. Anything technical becomes a plain, kind message: it didn't go through,
+   their answers are still here, try again, or call or text us. */
+const FIXABLE = /^(Pick your dates|Enter your name|Enter a phone|Pick drop-off|Add your pets|Check your pets|Say what kind|Pick dog, cat|A dog and a cat|Not enough open spots|You already have a request|We\u2019re getting a lot|Sign the form|Online requests aren\u2019t set up)/;
+const CALL_TEXT = '(308) 233-2652';
+const oops = what => 'Sorry, something went wrong on our side and your '+what+' didn\u2019t go through. Your answers are still here, so please try again in a minute. If it keeps happening, call or text us at '+CALL_TEXT+'.';
+const offline = what => 'Your '+what+' didn\u2019t go through because the connection dropped. Your answers are still here, so try again once you\u2019re back online.';
+const ROBOT_LOAD = 'The quick \u201cI\u2019m not a robot\u201d check didn\u2019t load. Please refresh the page and try again.';
+const ROBOT_FAIL = 'The quick \u201cI\u2019m not a robot\u201d check didn\u2019t go through. Please try sending again.';
+// a reply from the server that wasn't ok
+const reasonText = (r, what) => !r ? oops(what) : /human check/i.test(r) ? ROBOT_FAIL : FIXABLE.test(r) ? r : oops(what);
+// something that threw on the way (no connection, robot check, a bad reply)
+const thrownText = (e, what) => /didn.t load/.test(e && e.message || '') ? ROBOT_LOAD : /human check/i.test(e && e.message || '') ? ROBOT_FAIL
+  : (navigator.onLine===false || e instanceof TypeError) ? offline(what) : oops(what);
 async function send(){
   ERR = problem();
   if(ERR){ draw(); document.getElementById('err')?.scrollIntoView({block:'center'}); return; }
@@ -514,14 +530,14 @@ async function send(){
     const data = {...paperData(), key:undefined, agree:true,
       pets:F.pets.map(p => ({...p, meds:(p.meds || []).filter(m => [m.name, m.dose, m.freq, m.instr].some(x => (x || '').trim()))}))};
     if(JSON.stringify({key:F.key, data}).length > 59000){
-      SENDING = false; ERR = 'This form is too big to send. Try signing again, or shorten the longest answers.'; draw(); return; }
+      SENDING = false; ERR = 'Sorry, your form came out too large to send, which shouldn’t happen. Your answers are still here. Please try signing again, and if it still won’t send, call or text us at '+CALL_TEXT+'.'; draw(); return; }
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, kind:'form', p:{key:F.key, data}})});
     // (the server takes forms up to 60 KB; a typical one with a signature is well under 20 KB)
-    const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
+    const r = await res.json().catch(() => ({ok:false}));
     if(r.ok){ DONE = true; try { localStorage.removeItem(DRAFT); } catch(e) {} scrollTo(0, 0); }
-    else ERR = r.reason || 'Couldn’t send. Please try again.';
-  } catch(e){ ERR = /human check/.test(e.message) ? e.message : 'Couldn’t send. Check your connection and try again.'; }
+    else ERR = reasonText(r.reason, 'form');
+  } catch(e){ ERR = thrownText(e, 'form'); }
   SENDING = false; draw();
 }
 
