@@ -176,6 +176,9 @@ function startForm(){
   } else { try { const m = load('lvpl-mine'), me = m && m.me;   // what they told the request page on this device
     if(me){ setName(F.owner, me.name); F.owner.cell = me.phone || ''; F.owner.email = me.email || '';
       if(me.pets && me.pets.length) F.pets = me.pets.map(reqPet); } } catch(e) {} }
+  // an update from a request: add any pets the request named that the saved copy doesn't have
+  if(MODE==='update' && NEED && (hadDraft || FROMSENT)) (NEED.pets || []).forEach(p => {
+    if(p.name && !F.pets.some(x => x.name.trim().toLowerCase()===p.name.trim().toLowerCase())) F.pets.push(reqPet(p)); });
   // an update made by hand from the site (no request) still says it's an update
   if(MODE==='new' && !hadDraft && !NEED && sent && sent.owner){ MODE = 'update'; F = fromSaved(sent); F.key = uuid(); F.agree = false; F.sign = {name:'', img:'', date:''}; FROMSENT = true; }
 }
@@ -317,13 +320,14 @@ function formView(){
   const intro = MODE==='pets' ? [h('h1',{}, 'A page for '+petNamesText(F.pets)),
       h('p',{class:'mut'}, 'We have your family on file, but not '+petNamesText(F.pets)+' yet. Fill out their page and send it to us.')]
     : MODE==='update' ? [h('h1',{}, 'Update your guest form'),
-      h('p',{class:'mut'}, NEED && NEED.update ? 'We’d like to make sure we have your latest details. Look it over, change anything that’s different, then sign and send it.'
+      h('p',{class:'mut'}, NEED && NEED.newPhone ? 'Your phone number is new to us, so please check your details: change anything that’s different, then sign and send it.'
+        : NEED && NEED.update ? 'We’d like to make sure we have your latest details. Look it over, change anything that’s different, then sign and send it.'
         : FROMSENT ? 'Here’s the form you sent us. Change anything that’s different, then sign and send it.'
         : 'Fill it in with your current details, then sign and send it. It replaces what we have on file.')]
     : [h('h1',{}, 'New guest form'),
       h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off.')];
   return [...intro,
-    REQ && h('p',{class:'mut', style:'font-size:13px'}, MODE==='new' ? 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. Already filled one out with us before? Then you can skip it. '
+    REQ && h('p',{class:'mut', style:'font-size:13px'}, MODE==='new' ? 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. '
       : 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. ', h('a',{href:'book.html?r='+REQ}, 'Back to your request')),
     h('p',{class:'mut', style:'font-size:13px'}, 'Tap a line to write on it and a box to tick it.'),
     VIEW==='paper' ? paperView() : simpleView(),
