@@ -115,9 +115,7 @@ body.blank #paper{display:block;padding:20px 0}
 /* New guest form, online. Fill it out once for each family's pets; it goes to the kennel
    app (through the request-spot server function, which runs the spam check), where Ashley
    files it onto the family. "Print or save as PDF" prints the paper form with the answers
-   on it; ?blank shows (and prints) the empty paper form. The site uses the black-and-white
-   line-art version everywhere (new-form-line-art.pdf); ?blank&color is the colour one
-   (new-guest-forms.pdf) and ?blank&outline the traced-outline one (new-guest-forms-outline.pdf). */
+   on it; ?blank shows (and prints) the empty paper form, which is new-form-line-art.pdf. */
 const SUPA_URL = 'https://hmkhdmtededcxsjnlqxz.supabase.co';
 const SEND_URL = SUPA_URL+'/functions/v1/request-spot', SEND_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2hkbXRlZGVkY3hzam5scXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5NzAzNTIsImV4cCI6MjEwOTU0NjM1Mn0.MAwoo-9B3v6M5GNUkEXQpnnmB-DMY3fgSD6r9RDod10';
 const TURNSTILE_SITE = '0x4AAAAAAF25ETdEUOtMMctP';
@@ -341,7 +339,7 @@ function tickBox(b){
 function paperView(){
   addPaperStyles();
   const sheets = h('div',{class:'sheets'}), wrap = h('div',{class:'sheetwrap'}, sheets);
-  sheets.innerHTML = guestPaper(paperData(), '', {edit:true, lineart:true});
+  sheets.innerHTML = guestPaper(paperData(), '', {edit:true});
   // a bar above each page: what it is, and a button to clear just that page
   const fam = sheets.querySelector('.gp-fam'), wv = sheets.querySelector('.gp-waiver');
   fam.before(h('div',{class:'petbar'}, h('b',{}, 'Your family'), clearBtn('Clear the family page?', 'Your name, contacts, vet and pick-up answers are erased.', clearFamily)));
@@ -453,7 +451,7 @@ function paperData(){
 async function printIt(){
   addPaperStyles();
   const paper = document.getElementById('paper');
-  paper.innerHTML = guestPaper(paperData(), '', {lineart:true});
+  paper.innerHTML = guestPaper(paperData(), '');
   await document.fonts.ready.catch(() => {});
   paper.style.cssText = 'display:block;position:absolute;left:-10000px;top:0'; guestPaperFit(paper); paper.style.cssText = '';
   await Promise.all([...paper.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
@@ -507,7 +505,7 @@ async function send(){
 
 if(new URLSearchParams(location.search).has('blank')){
   document.body.classList.add('blank'); addPaperStyles();
-  document.getElementById('paper').innerHTML = guestPaper(null, '', (q => ({outline:q.has('outline'), lineart:!q.has('outline') && !q.has('color')}))(new URLSearchParams(location.search)));
+  document.getElementById('paper').innerHTML = guestPaper(null, '');
   document.fonts.ready.then(() => guestPaperFit(document.getElementById('paper')));
 } else draw();
 </script>

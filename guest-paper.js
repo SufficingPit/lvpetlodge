@@ -1,23 +1,23 @@
 'use strict';
-/* The New Guest form as paper, in the style of Ashley's original printout (same art, fonts and
-   wording), laid out as:
+/* The New Guest form as paper, based on Ashley's original printout (same wording), in
+   black-and-white line art, laid out as:
    - a family page (welcome, registration, contacts, vet, who may pick up, items brought),
    - one page per pet (everything about that pet: details, medication, diet, personality),
    - the waiver (tick to agree, sign, printed name, date).
    Used three ways:
-   - blank: new-guest-forms.pdf is printed from it (one pet page; copy it for more pets),
+   - blank: new-form-line-art.pdf is printed from it (guest-form.html?blank),
    - filled in, to print someone's answers (the website's "Print" and the kennel app's Print),
    - fillable on screen (opts.edit): the lines are inputs and the boxes can be ticked. Every
-     field carries data-k, the path of its answer in the form data, so the page can keep the
-     paper form and the simple form in step.
+     field carries data-k, the path of its answer in the form data.
+   Pictures are in img/form/lineart/ (Pixabay, free to use, no credit needed); the paws are drawn here.
    guestPaper(data, base, opts) returns the pages as HTML. base: where img/form/ lives.
    guestPaperFit(root) lines up the first line of each multi-line answer after its label;
    call it while the pages are laid out (not display:none). Styles: guestPaperCSS (gp- classes). */
 (function(){
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const PAW = '<path d="M12.1 11.2c-3.3 0-6.4 3.7-6.4 6.5 0 2.1 1.6 3.1 3.5 3.1 1.2 0 2-.7 2.9-.7s1.7.7 2.9.7c1.9 0 3.5-1 3.5-3.1 0-2.8-3.1-6.5-6.4-6.5z"/><ellipse cx="5.6" cy="9.3" rx="2.3" ry="2.9" transform="rotate(-18 5.6 9.3)"/><ellipse cx="9.7" cy="5.4" rx="2.3" ry="3" transform="rotate(-6 9.7 5.4)"/><ellipse cx="14.6" cy="5.4" rx="2.3" ry="3" transform="rotate(6 14.6 5.4)"/><ellipse cx="18.7" cy="9.3" rx="2.3" ry="2.9" transform="rotate(18 18.7 9.3)"/>';
-// LINES: the ink-saving outline version (outline pictures, paws drawn as outlines)
-let LINES = false;
+// the form is black-and-white line art: solid black paws, plain headings
+const LINES = true;
 const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';'+'fill:'+(LINES ? '#111' : color)+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
 // trail prints: a simpler paw with clear gaps so the toes stay separate when small
 const TPAW = '<path d="M12 12.4c-3.6 0-6.9 3.9-6.9 6.8 0 2.2 1.7 3.3 3.7 3.3 1.3 0 2.2-.8 3.2-.8s1.9.8 3.2.8c2 0 3.7-1.1 3.7-3.3 0-2.9-3.3-6.8-6.9-6.8z"/><ellipse cx="4.3" cy="9.6" rx="2.4" ry="3" transform="rotate(-22 4.3 9.6)"/><ellipse cx="9.2" cy="4.4" rx="2.4" ry="3.1" transform="rotate(-8 9.2 4.4)"/><ellipse cx="14.8" cy="4.4" rx="2.4" ry="3.1" transform="rotate(8 14.8 4.4)"/><ellipse cx="19.7" cy="9.6" rx="2.4" ry="3" transform="rotate(22 19.7 9.6)"/>';
@@ -37,8 +37,7 @@ const get = (o, path) => path.split('.').reduce((a, k) => a == null ? undefined 
 function guestPaper(d, base, opts){
   base = base || ''; opts = opts || {};
   // art: 'outline' = our line tracing of the colour pictures, 'lineart' = drawn-as-line-art clip art
-  const ART = opts.lineart ? 'lineart/' : opts.outline ? 'outline/' : '';
-  LINES = !!ART;
+  const ART = 'lineart/';   // line-art clip art from Pixabay (free to use, no credit needed)
   const E = !!opts.edit, D = d || {}, pets = (D.pets && D.pets.length) ? D.pets : [{}];
   const img = (n, cls) => '<img class="gp-art'+(cls ? ' gp-'+cls : '')+'" src="'+base+'img/form/'+ART+n+'.png" alt="">';
   // the answer on a line: an input when filling in on screen, text when printing
