@@ -18,14 +18,17 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const PAW = '<path d="M12.1 11.2c-3.3 0-6.4 3.7-6.4 6.5 0 2.1 1.6 3.1 3.5 3.1 1.2 0 2-.7 2.9-.7s1.7.7 2.9.7c1.9 0 3.5-1 3.5-3.1 0-2.8-3.1-6.5-6.4-6.5z"/><ellipse cx="5.6" cy="9.3" rx="2.3" ry="2.9" transform="rotate(-18 5.6 9.3)"/><ellipse cx="9.7" cy="5.4" rx="2.3" ry="3" transform="rotate(-6 9.7 5.4)"/><ellipse cx="14.6" cy="5.4" rx="2.3" ry="3" transform="rotate(6 14.6 5.4)"/><ellipse cx="18.7" cy="9.3" rx="2.3" ry="2.9" transform="rotate(18 18.7 9.3)"/>';
 // LINES: the ink-saving outline version (outline pictures, paws drawn as outlines)
 let LINES = false;
-const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';'+(LINES ? 'fill:none;stroke:'+color+';stroke-width:1.2' : 'fill:'+color)+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
+const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';'+'fill:'+(LINES ? '#111' : color)+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
+// trail prints: a simpler paw with clear gaps so the toes stay separate when small
+const TPAW = '<ellipse cx="12" cy="16.5" rx="5.6" ry="4.6"/><ellipse cx="4.6" cy="9.4" rx="2.3" ry="2.7" transform="rotate(-20 4.6 9.4)"/><ellipse cx="9.4" cy="4.6" rx="2.3" ry="2.8"/><ellipse cx="14.6" cy="4.6" rx="2.3" ry="2.8"/><ellipse cx="19.4" cy="9.4" rx="2.3" ry="2.7" transform="rotate(20 19.4 9.4)"/>';
 // a little trail of black paw prints walking along a line
 function trail(n, back){
   let g = '';
-  for(let i = 0; i < n; i++){ const x = 6 + i*15, y = i % 2 ? 4 : 13;
-    g += '<g transform="translate('+x+' '+y+') rotate('+(i % 2 ? 100 : 80)+' 5 5) scale(.42)">'+PAW+'</g>'; }
-  const w = n*15+8;   // back: the right-hand trail walks left, toward the title
-  return '<svg class="gp-trail"'+(LINES ? ' style="fill:none;stroke:#222;stroke-width:2.6"' : '')+' viewBox="0 0 '+w+' 26" preserveAspectRatio="xMidYMid meet">'+(back ? '<g transform="translate('+w+' 0) scale(-1 1)">'+g+'</g>' : g)+'</svg>';
+  n = Math.max(4, Math.round(n * 0.62));   // fewer, larger prints so pad and toes read clearly
+  for(let i = 0; i < n; i++){ const x = 4 + i*27, y = i % 2 ? 1 : 15;
+    g += '<g transform="translate('+x+' '+y+') rotate('+(i % 2 ? 100 : 80)+' 9.5 9.5) scale(.8)">'+TPAW+'</g>'; }
+  const w = n*27+10;   // back: the right-hand trail walks left, toward the title
+  return '<svg class="gp-trail" viewBox="0 0 '+w+' 36" preserveAspectRatio="xMidYMid meet">'+(back ? '<g transform="translate('+w+' 0) scale(-1 1)">'+g+'</g>' : g)+'</svg>';
 }
 const band = (title, cls, n) => '<div class="gp-band">'+trail(n || 8)+'<span class="'+cls+'">'+title+'</span>'+trail(n || 8, true)+'</div>';
 const fmtDate = v => { if(!v) return ''; const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v); return m ? (+m[2])+'/'+(+m[3])+'/'+m[1] : v; };
@@ -56,7 +59,7 @@ function guestPaper(d, base, opts){
 
   // ---------- the family: once, however many pets
   function familyPage(){
-    return '<section class="gp-pg gp-fam"><div class="gp-frame">'
+    return '<section class="gp-pg gp-fam'+(LINES ? ' gp-bw' : '')+'"><div class="gp-frame">'
       +'<div class="gp-hd">'+img('corgi', 'corgi')+'<div class="gp-ttl"><span class="gp-welcome">Welcome to</span><span class="gp-lodge">Little Village Pet Lodge</span></div>'+img('beagle', 'beagle')+'</div>'
       +'<p class="gp-intro">Thank you for giving us the opportunity to care for your pet. To ensure the best care possible, please take the time to fill in this form completely.</p>'
       +band('REGISTRATION', 'gp-h-reg', 9)
@@ -88,7 +91,7 @@ function guestPaper(d, base, opts){
     const meds = '<div class="gp-mth">Medication</div><div class="gp-mth">Dosage</div><div class="gp-mth">How often</div><div class="gp-mth">Instructions</div>'
       + [0, 1, 2, 3].map(j => { const M = P+'meds.'+j+'.';
         return '<span class="gp-mn">'+(j+1)+'</span>'+ans(M+'name')+ans(M+'dose')+ans(M+'freq')+ans(M+'instr'); }).join('');
-    return '<section class="gp-pg gp-pet"><div class="gp-frame">'
+    return '<section class="gp-pg gp-pet'+(LINES ? ' gp-bw' : '')+'"><div class="gp-frame">'
       +'<div class="gp-pethd">'+img('beagle2', 'beag2')+'<div class="gp-pt"><span>Pet Information</span><span class="gp-paws">'+paw('#1f9a3a','.34in',-8)+paw('#e0261f','.34in',6)+paw('#111','.34in',-4)+paw('#e0261f','.34in',8)+paw('#f39200','.34in',-6)+'</span></div>'+img('siamese', 'siam')+'</div>'
       +'<div class="gp-petbox"><div class="gp-col gp-petl">'
         +ln('Name of Pet:', P+'name')+ln('Breed:', P+'breed')+ln('Color:', P+'color')+ln('Date of Birth:', P+'dob', 'date')
@@ -137,7 +140,7 @@ function guestPaper(d, base, opts){
   function waiverPage(){
     const S = D.sign || {};
     const signed = S.img ? '<img class="gp-sig" src="'+esc(S.img)+'" alt="">' : '';
-    return '<section class="gp-pg gp-waiver"><div class="gp-frame">'
+    return '<section class="gp-pg gp-waiver'+(LINES ? ' gp-bw' : '')+'"><div class="gp-frame">'
       +'<div class="gp-wtop">'+img('wcat', 'wt1')+'<div class="gp-wt"><span>Consent for Medical Care and Legal Waiver</span></div>'+img('dogbone', 'wt2')+'</div>'
       +'<p class="gp-c gp-caps">NOTE PICK UP AND DROP OFF TIMES! EXTRA CHARGE OF $10.00 IF NECESSARY</p>'
       +'<p class="gp-in1">Little Village Pet Lodge cares about every pet! We will do everything possible to make their stay with us a happy, safe, and well cared for time. Pet owner specifically represents to kennel that pet has not been exposed to any contagious diseases within the last 30 days and that all vaccinations are up to date. It is understood that any animal found to be harboring any type of external parasite will be treated accordingly at the expense of the pet owner.</p>'
@@ -174,7 +177,7 @@ const guestPaperCSS = `
 .gp-frame>*{flex:none}
 .gp-art{display:block;object-fit:contain;border:0;background:none;padding:0;margin:0}
 .gp-paw{display:inline-block;flex:none}
-.gp-trail{width:1.75in;height:.28in;flex:none}
+.gp-trail{width:1.75in;height:.36in;flex:none}
 .gp-fl{display:flex;align-items:flex-end;gap:5px;margin:0 0 .07in;min-width:0;position:relative}
 .gp-fl2{display:flex;gap:.25in}.gp-fl2>.gp-fl{flex:1}
 .gp-lb{white-space:nowrap;flex:none}
@@ -297,6 +300,14 @@ button.gp-signbtn{cursor:pointer;display:block}
 .gp-bd{margin:.02in 0 .1in!important}
 .gp-dates{display:grid;grid-template-columns:1fr 1fr;gap:.1in .45in;padding:0 .2in}
 .gp-to{margin:0 .04in}
+/* ink-saving versions: black and white, light fonts instead of heavy coloured ones */
+.gp-bw .gp-welcome{font:400 17pt/1 Questrial,"Century Gothic",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#111}
+.gp-bw .gp-lodge,.gp-bw .gp-wt span,.gp-bw .gp-pt>span:first-child{color:#111}
+.gp-bw .gp-h-med{font:19pt/1 Questrial,"Century Gothic",sans-serif;color:#222;-webkit-text-stroke:0;letter-spacing:0}
+.gp-bw .gp-sub,.gp-bw .gp-mth,.gp-bw .gp-mn{color:#111}
+.gp-bw .gp-paws{gap:.24in}
+.gp-bw .gp-paws .gp-paw{width:.24in!important;height:.24in!important}
+.gp-bw .gp-foot .gp-paw{width:.22in!important;height:.22in!important}
 @media screen{.gp-pg{box-shadow:0 2px 14px rgba(0,0,0,.18);margin:0 auto 18px}}
 @media print{@page{size:letter;margin:0}.gp-pg{break-after:page;page-break-after:always;margin:0!important;box-shadow:none}.gp-waiver{break-after:auto;page-break-after:auto}
   .gp-in:hover,.gp-in:focus,textarea.gp-ta:hover,textarea.gp-ta:focus{background-color:transparent}}
