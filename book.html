@@ -494,7 +494,8 @@ function statusView(){
   const names = s.pets.map(p => p.name).join(', ');
   const link = location.origin + location.pathname + '?r=' + TOKEN;
   return [header('Your request'),
-    JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!')),
+    JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!'),
+      h('div',{style:'margin-top:4px'}, 'First time with us? ', h('a',{href:'guest-form.html'}, 'Fill out the new guest form'), ' so it’s ready at drop-off.')),
     h('div',{class:s.status==='approved' ? 'ok' : waiting ? 'card' : 'warn'}, h('b',{}, LABEL[s.status] || s.status),
       waiting ? h('div',{class:'mut'}, 'We’ll text or call you soon. This page updates by itself.')
       : s.status==='approved' ? h('div',{}, 'See you then!') : null),
