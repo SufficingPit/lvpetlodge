@@ -15,7 +15,13 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg)}
 body{margin:0;color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-#app{max-width:620px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 16px 48px}
+#app{max-width:620px;margin:0 auto;padding:22px 16px 48px}
+.tb{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.tb-home{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;line-height:1.1}
+.tb-home img{width:36px;height:36px;border-radius:8px;background:#fff}
+.tb-home small{display:block;font-weight:600;color:var(--mut);font-size:12px}
+.tb-call{min-height:40px;display:inline-flex;align-items:center;padding:0 16px;border-radius:999px;border:1px solid var(--field);color:var(--ink);text-decoration:none;font-weight:600;background:var(--card)}
+@media(min-width:660px){.tb{padding-left:calc(50% - 294px);padding-right:calc(50% - 294px)}}
 h1{font-size:26px;margin:0 0 2px}
 h2{font-size:17px;margin:28px 0 10px}
 p{margin:0 0 10px}
@@ -77,6 +83,9 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .sharing{font-size:15px;margin-top:2px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .link{word-break:break-all;font-size:14px}
+.est .el{font-size:15px;padding:4px 0;align-items:flex-start}
+.est .el span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.est .tot{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-size:17px}
 .mine{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
 .mine:first-of-type{border-top:0}
 .mine small{display:block;color:var(--mut);font-size:13px}
@@ -89,6 +98,7 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 </style>
 </head>
 <body>
+<header class="tb"><a class="tb-home" href="./"><img src="img/logo.png" alt="" width="36" height="36"><span>Little Village<small>Pet Lodge</small></span></a><a class="tb-call" href="tel:+13082332652">Call</a></header>
 <div id="app"><p class="mut">Loading…</p></div>
 <div id="tsbox" hidden><p class="mut" style="margin:0 0 8px">One quick check that you’re not a robot:</p><div id="ts"></div></div>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
@@ -233,6 +243,30 @@ function petCard(p, i){
         return h('button',{class:'chip kl'+(p.g===l ? ' on' : ''), disabled:clash || null, title:clash ? 'Dogs and cats can’t share' : null,
           'aria-label':'Kennel '+l, onclick:()=>{ p.g = l; petsChanged(); }}, l); }))));
 }
+// An estimate from her rates, the same way the app adds up a stay: per pet per night,
+// a discount for pets sharing a kennel, the evening pickup (meal) fee unless they bring
+// food, and the fee for each drop-off or pickup outside her hours.
+const money = n => '$'+(Math.round(n*100)/100).toFixed(Number.isInteger(Math.round(n*100)/100) ? 0 : 2);
+function estimate(){
+  const R0 = INFO.rates; if(!R0 || !F.start || !F.end) return null;
+  const nights = Math.max(1, nightsBetween(F.start, F.end)), lines = [];
+  F.pets.forEach((p, i) => { const r = R0[p.species==='cat' ? 'cat' : p.species==='other' ? 'other' : 'dog'] || 0;
+    lines.push([petLabel(p, i)+' · '+nights+(nights===1 ? ' night' : ' nights')+' × '+money(r), nights*r]); });
+  const by = {}; F.pets.forEach(p => { if(lettered(p)) by[p.species+p.g] = (by[p.species+p.g]||0) + 1; });
+  const sharing = Object.values(by).filter(n => n > 1).reduce((a, n) => a + n, 0);
+  if(sharing && R0.share) lines.push(['Sharing a kennel · '+sharing+' pets × '+nights+(nights===1 ? ' night' : ' nights')+' × −'+money(R0.share), -sharing*nights*R0.share]);
+  if(F.arr && F.otherArr && INFO.fee) lines.push(['Drop-off outside hours', INFO.fee]);
+  if(F.pick && F.otherPick && INFO.fee) lines.push(['Pickup outside hours', INFO.fee]);
+  else if(F.pick && !F.ownFood && INFO.eveFee && INFO.eveFrom && F.pick >= INFO.eveFrom) lines.push(['Evening pickup (meal)', INFO.eveFee]);
+  return {lines, total:lines.reduce((a, l) => a + l[1], 0)};
+}
+function estimateCard(){
+  const e = estimate(); if(!e) return null;
+  return h('div',{class:'card est'}, h('span',{class:'lbl'}, 'Estimated price'),
+    e.lines.map(([t, n]) => h('div',{class:'row el'}, h('span',{}, t), h('span',{}, (n < 0 ? '−' : '')+money(Math.abs(n))))),
+    h('div',{class:'row el tot'}, h('b',{}, 'Estimated total'), h('b',{}, money(e.total))),
+    h('p',{class:'mut', style:'margin:8px 0 0;font-size:13px'}, 'The final price is confirmed at pickup (meds or extras can add to it).'+(INFO.rates.card ? ' Card payments add '+INFO.rates.card+'%.' : '')));
+}
 const rangeOpen = (s, e) => { for(let d = s; d < e; d = addDays(d, 1)) if(nightOpen(d)===false) return false; return true; };
 const closedOn = d => DAYS[d]?.closed;
 
@@ -329,7 +363,7 @@ async function send(){
 }
 
 /* ---------- screens ---------- */
-function header(sub){ return [h('a',{class:'biz', href:'./', style:'text-decoration:none'}, '‹ '+BIZ), h('h1',{}, sub)]; }
+function header(sub){ return [h('h1',{style:'margin-bottom:10px'}, sub)]; }
 const callUs = () => h('div',{class:'two', style:'margin-top:10px'}, h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)', href:'tel:'+PHONE}, 'Call '+PHONE_TEXT), h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)', href:'sms:'+PHONE}, 'Text us'));
 function formView(){
   if(!INFO.on) return [header('Request a stay'), mineBox(), h('div',{class:'warn'}, INFO.offNote || 'Online requests are paused right now. Please call or text us to book.'), callUs()];
@@ -363,6 +397,7 @@ function formView(){
         INFO.fee ? h('div',{}, h('b',{}, 'Drop-off or pickup before or after hours: +$'+INFO.fee+'.')) : null) : null,
       timePick(F.start, 'arr', 'otherArr', 'Drop-off'),
       timePick(F.end, 'pick', 'otherPick', 'Pickup'),
+      estimateCard(),
       h('h2',{}, '4. About you'),
       input('name','Your name',{ac:'name', max:80}),
       h('div',{class:'two'}, input('phone','Phone',{type:'tel', ac:'tel', im:'tel', max:20}), input('email','Email (optional)',{type:'email', ac:'email', max:120})),
