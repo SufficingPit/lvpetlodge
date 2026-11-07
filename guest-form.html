@@ -263,6 +263,7 @@ function formView(){
     h('button',{class:'b', style:'margin-top:16px', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send to Little Village'),
     h('button',{type:'button', class:'b2', style:'width:100%;margin-top:10px', onclick:printIt}, 'Print or save as PDF'),
     h('p',{class:'mut', style:'margin-top:12px;font-size:13px'}, 'Your answers are kept on this device until you send them.'),
+    h('p',{class:'mut', style:'margin-top:18px;font-size:11px'}, 'Siamese kitten art: Phantom Open Emoji, CC BY 3.0.'),
     SIGNING && signSheet()];
 }
 function simpleView(){

@@ -80,8 +80,10 @@ function guestPaper(d, base, opts){
     const P = 'pets.'+i+'.';
     const pers = [['Shy at First','Shy at first'],['Paw-fers Privacy','Paw-fers privacy'],['Playful Pup/Purrer','Playful'],['Cuddlebug','Cuddlebug'],['Love at First Lick','Love at first lick']];
     const along = ['Cats','Dogs','Humans','Everyone'];
-    const meds = [0, 1].map(j => { const M = P+'meds.'+j+'.';
-      return '<div class="gp-col">'+ln('Name:', M+'name')+ln('Dosage:', M+'dose')+ln('Frequency:', M+'freq')+ln('Instructions:', M+'instr')+'</div>'; }).join('');
+    // up to four medications, one per ruled row (the simple form allows four too)
+    const meds = '<div class="gp-mth">Medication</div><div class="gp-mth">Dosage</div><div class="gp-mth">How often</div><div class="gp-mth">Instructions</div>'
+      + [0, 1, 2, 3].map(j => { const M = P+'meds.'+j+'.';
+        return '<span class="gp-mn">'+(j+1)+'</span>'+ans(M+'name')+ans(M+'dose')+ans(M+'freq')+ans(M+'instr'); }).join('');
     return '<section class="gp-pg gp-pet"><div class="gp-frame">'
       +'<div class="gp-pethd">'+img('beagle2', 'beag2')+'<div class="gp-pt"><span>Pet Information</span><span class="gp-paws">'+paw('#1f9a3a','.34in',-8)+paw('#e0261f','.34in',6)+paw('#111','.34in',-4)+paw('#e0261f','.34in',8)+paw('#f39200','.34in',-6)+'</span></div>'+img('siamese', 'siam')+'</div>'
       +'<div class="gp-petbox"><div class="gp-col gp-petl">'
@@ -97,7 +99,6 @@ function guestPaper(d, base, opts){
         +'<div class="gp-cond">'+multi('Allergies or medical conditions you should know about:', P+'conditions', 2)+img('corgipup', 'cpup')+'</div>'
         +'<div class="gp-medh">I need to get the following medication(s):</div>'
         +'<div class="gp-meds">'+meds+'</div>'
-        +((p.meds || []).length > 2 ? '<div class="gp-more">Also: '+esc(p.meds.slice(2).map(m => [m.name, m.dose, m.freq, m.instr].filter(Boolean).join(', ')).join('; '))+'</div>' : '')
       +'</div>'
       +band('Diet Information', 'gp-h-diet', 8)
       +'<div class="gp-diet">'
@@ -201,7 +202,8 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-hd{display:flex;align-items:center;gap:.12in;height:1in}
 .gp-corgi{width:1.35in;height:1.05in}
 .gp-welcome{flex:1;text-align:center;font:58pt/1 "Alfa Slab One",Rockwell,serif;letter-spacing:.01em;background:linear-gradient(#ffd37a,#f7a531 45%,#e57e12 60%,#f6a43a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.2px #b85f0a;filter:drop-shadow(1.5px 2px 0 rgba(140,70,0,.35))}
-.gp-beagle{width:.55in;height:.8in;align-self:flex-end}
+.gp-beagle{width:1.05in;height:1in;align-self:flex-end;margin-left:-.3in;position:relative;z-index:0}
+.gp-welcome{position:relative;z-index:1}
 .gp-lodge{display:flex;align-items:flex-end;gap:.08in;margin:.02in 0 .06in .1in}
 .gp-lodge span{font:31pt/1.1 Caladea,Cambria,Georgia,serif;color:#1f4db5}
 .gp-kit{width:.45in;height:.6in}
@@ -241,9 +243,11 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-cond .gp-multi{margin-bottom:.03in}
 .gp-cpup{position:absolute;right:0;top:-.12in;width:.72in;height:.72in}
 .gp-medh{font:italic 700 11pt/1.2 Verdana,"DejaVu Sans",sans-serif;margin:.03in 0 .05in}
-.gp-meds{display:flex;gap:.3in}
-.gp-meds .gp-fl{margin-bottom:.06in}
-.gp-more{font-size:9pt;color:#1d3c8c;font-family:Arimo,Arial,sans-serif}
+.gp-meds{display:grid;grid-template-columns:.16in 1.9fr 1fr 1.15fr 2.3fr;column-gap:.1in;row-gap:.055in;align-items:end;font-size:10pt}
+.gp-mth{grid-column:auto;font:700 8.5pt/1 Verdana,"DejaVu Sans",sans-serif;color:#2c4a6e;padding-left:3px}
+.gp-mth:first-child{grid-column:2}
+.gp-mn{font:700 9pt/1 Verdana,"DejaVu Sans",sans-serif;color:#2c4a6e;text-align:right;padding-bottom:2px}
+.gp-meds .gp-ln{min-width:0;width:100%;min-height:1.25em}
 .gp-diet{position:relative;padding:0 .95in 0 .05in;font-size:10pt}
 .gp-per{flex:0 0 1.75in!important}
 .gp-treat .gp-ln{flex:0 0 1.3in;margin-right:.16in}
