@@ -156,7 +156,7 @@ const saveMem = () => { try { localStorage.setItem(MEMKEY, JSON.stringify(MEM));
 let MINE = [];   // statuses of remembered requests, shown above the form
 
 /* ---------- state ---------- */
-const F = {start:null, end:null, arr:'', pick:'', otherArr:false, otherPick:false,
+const F = {ownFood:false, start:null, end:null, arr:'', pick:'', otherArr:false, otherPick:false,
   name:'', phone:'', email:'', notes:'', pets:[{species:'dog', name:'', breed:'', g:'A'}], month:null, key:(crypto.randomUUID ? crypto.randomUUID() : null)};
 let INFO = null, DAYS = {}, CHECK = null, ERR = '', SENDING = false, DONE = null, STATUS = null;
 // pets with the same kennel letter share; spots needed = kennel letters in use, per kind
@@ -289,7 +289,7 @@ function timePick(day, k, otherK, label){
   const w = INFO.hours?.[parseD(day).getDay()] || [];
   const slots = []; w.forEach(([a,b]) => { for(let m = toMin(a); m <= toMin(b); m += 30) slots.push(fromMin(m)); });
   const fee = INFO.fee ? ' ($'+INFO.fee+' fee)' : '';
-  const eve = t => k==='pick' && INFO.eveFee && INFO.eveFrom && t >= INFO.eveFrom;
+  const eve = t => k==='pick' && !F.ownFood && INFO.eveFee && INFO.eveFrom && t >= INFO.eveFrom;
   const set = v => { F[k] = v; draw(); };
   const other = [...Array(29)].map((_, i) => fromMin(7*60 + i*30)).filter(t => !slots.includes(t));   // 7 AM to 9 PM
   return h('div',{class:'f'}, h('span',{class:'lbl'}, label+', '+wmd(day)),
@@ -317,11 +317,11 @@ async function send(){
     const token = await humanCheck();
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
-        pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined}))}})});
+        ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined}))}})});
     const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
     if(r.ok){ DONE = r.token; history.replaceState(null, '', '?r='+r.token);
       MEM.reqs = [{token:r.token, start:F.start, end:F.end}, ...MEM.reqs.filter(x => x.token!==r.token)].slice(0, 8);
-      MEM.me = {name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage}))};
+      MEM.me = {ownFood:F.ownFood, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage}))};
       saveMem(); }
     else { ERR = r.reason; if(/spots|closed|soon|far|shortest/i.test(r.reason)){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
   } catch(e){ ERR = /human check/.test(e.message) ? e.message : 'Couldn’t send. Check your connection and try again.'; }
@@ -342,7 +342,9 @@ function formView(){
     h('h2',{}, '1. Who’s staying?'),
     h('div',{class:'card'}, F.pets.map(petCard),
       F.pets.length > 1 && h('div',{class:'sharing'}, F.pets.filter(lettered).length > 1 && h('span',{class:'mut'}, 'Same letter = same kennel. '), shareText()),
-      F.pets.length < 6 && h('button',{class:'b2', style:'width:100%;margin-top:10px', onclick:()=>{ F.pets.push({species:'dog', name:'', breed:'', g:freeLetter('dog')}); petsChanged(); }}, '+ Add another pet')),
+      F.pets.length < 6 && h('button',{class:'b2', style:'width:100%;margin-top:10px', onclick:()=>{ F.pets.push({species:'dog', name:'', breed:'', g:freeLetter('dog')}); petsChanged(); }}, '+ Add another pet'),
+      h('div',{style:'margin-top:14px'}, h('span',{class:'lbl'}, F.pets.length > 1 ? 'Bringing their own food?' : 'Bringing their own food?'),
+        h('div',{class:'seg'}, [[false,'No, use yours'],[true,'Yes, we’ll bring it']].map(([v,l]) => h('button',{class:F.ownFood===v ? 'on' : '', onclick:()=>{ F.ownFood = v; draw(); }}, l))))),
     h('h2',{}, F.start && !F.end ? '2. Now pick the pickup day' : '2. Pick drop-off, then pickup'),
     h('div',{class:'card'}, monthCal()),
     F.start && h('div',{class:'card'},
@@ -356,7 +358,8 @@ function formView(){
     enough && [
       h('h2',{}, '3. Times'),
       (INFO.eveFee || INFO.fee) ? h('div',{class:'fees'},
-        INFO.eveFee && INFO.eveFrom ? h('div',{}, h('b',{}, 'Pickup during evening hours ('+t12(INFO.eveFrom).replace(':00','')+' or later): +$'+INFO.eveFee+'.')) : null,
+        INFO.eveFee && INFO.eveFrom ? h('div',{}, h('b',{}, 'Pickup during evening hours ('+t12(INFO.eveFrom).replace(':00','')+' or later): +$'+INFO.eveFee+'.'),
+          F.ownFood ? ' That’s for their evening meal, so it doesn’t apply since you’re bringing food.' : ' That’s for their evening meal. No charge if you bring their food.') : null,
         INFO.fee ? h('div',{}, h('b',{}, 'Drop-off or pickup before or after hours: +$'+INFO.fee+'.')) : null) : null,
       timePick(F.start, 'arr', 'otherArr', 'Drop-off'),
       timePick(F.end, 'pick', 'otherPick', 'Pickup'),
@@ -448,7 +451,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
     return;
   }
   // fill in what they told us last time
-  if(MEM.me){ F.name = MEM.me.name || ''; F.phone = MEM.me.phone || ''; F.email = MEM.me.email || '';
+  if(MEM.me){ F.ownFood = !!MEM.me.ownFood; F.name = MEM.me.name || ''; F.phone = MEM.me.phone || ''; F.email = MEM.me.email || '';
     if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:['dog','cat','other'].includes(p.species) ? p.species : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A', kind:p.kind||'', cage:p.cage!==false})); }
   // requests sent from this device that are still ahead
   Promise.all(MEM.reqs.map(x => rpc('request_status', {p_token:x.token}).then(st => st && {...x, status:st.status, names:st.pets.map(p => p.name).join(', ')}).catch(() => null)))
