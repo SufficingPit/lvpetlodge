@@ -420,10 +420,11 @@ async function send(){
       body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
         ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined}))}})});
     const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
-    if(r.ok){ DONE = r.token; history.replaceState(null, '', '?r='+r.token);
+    if(r.ok){
       MEM.reqs = [{token:r.token, start:F.start, end:F.end}, ...MEM.reqs.filter(x => x.token!==r.token)].slice(0, 8);
       MEM.me = {ownFood:F.ownFood, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage}))};
-      saveMem(); }
+      saveMem(); try { sessionStorage.setItem('lvpl-new', r.token); } catch(e) {}
+      location.assign('?r='+r.token); return; }
     else { ERR = r.reason; if(/spots|closed|soon|far|shortest/i.test(r.reason)){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
   } catch(e){ ERR = /human check/.test(e.message) ? e.message : 'Couldn’t send. Check your connection and try again.'; }
   SENDING = false; draw();
@@ -469,14 +470,6 @@ function formView(){
       h('button',{class:'b', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send request'),
       h('p',{class:'mut', style:'margin-top:10px'}, 'Your spot is held while we look at your request.')]];
 }
-function doneView(){
-  const link = location.origin + location.pathname + '?r=' + DONE;
-  return [header('Request sent'),
-    h('div',{class:'ok'}, 'Thanks, '+F.name.trim().split(/\s+/)[0]+'! We got your request for '+md(F.start)+' – '+md(F.end)+' and will text or call you soon.'),
-    h('p',{}, 'You can check on it anytime from this page on this device, or with this link. While it’s waiting, you can change or cancel it there.'),
-    h('div',{class:'card link'}, link),
-    h('button',{class:'b2', onclick:e=>{ navigator.clipboard?.writeText(link).then(() => { e.target.textContent = 'Copied'; }); }}, 'Copy link')];
-}
 const LABEL = {pending:'Waiting for our reply', approved:'Booked', declined:'Not booked', cancelled:'Cancelled', expired:'Not booked', deleted:'Cancelled'};
 function mineBox(){
   if(!MINE.length) return null;
@@ -490,7 +483,9 @@ function statusView(){
   if(!STATUS) return [header('Your request'), h('div',{class:'warn'}, 'We couldn’t find that request. Check the link.'), h('a',{href:location.pathname, class:'lk'}, 'Make a new request')];
   const s = STATUS, waiting = s.status==='pending';
   const names = s.pets.map(p => p.name).join(', ');
+  const link = location.origin + location.pathname + '?r=' + TOKEN;
   return [header('Your request'),
+    JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!')),
     h('div',{class:s.status==='approved' ? 'ok' : waiting ? 'card' : 'warn'}, h('b',{}, LABEL[s.status] || s.status),
       waiting ? h('div',{class:'mut'}, 'We’ll text or call you soon. This page updates by itself.')
       : s.status==='approved' ? h('div',{}, 'See you then!') : null),
@@ -509,9 +504,13 @@ function statusView(){
     s.status==='approved' && [h('p',{class:'mut', style:'margin:14px 0 0'}, 'Need to change or cancel? Please call or text us.'), callUs()],
     ERR && h('div',{class:'err'}, ERR),
     !waiting && s.status!=='approved' && h('a',{href:location.pathname, class:'b', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:12px'}, 'Make a new request'),
-    UPDATED && h('p',{class:'mut', style:'margin-top:14px;font-size:13px'}, 'Checked '+UPDATED)];
+    h('div',{class:'card', style:'margin-top:14px'}, h('span',{class:'lbl'}, 'Link to this page'),
+      h('p',{class:'mut', style:'margin:0 0 10px'}, 'It’s saved on this device and shows on our site. To check from another phone or computer, copy this link.'),
+      h('div',{class:'link', style:'margin-bottom:10px'}, link),
+      h('button',{class:'b2', onclick:e=>{ navigator.clipboard?.writeText(link).then(() => { e.target.textContent = 'Copied'; }); }}, 'Copy link'))];
 }
-let CONFIRM = false, UPDATED = '';
+let CONFIRM = false, JUST = false;
+try { JUST = sessionStorage.getItem('lvpl-new')===new URLSearchParams(location.search).get('r'); } catch(e) {}
 async function cancelIt(change){
   try {
     const ok = await rpc('request_cancel', {p_token:TOKEN});
@@ -524,13 +523,14 @@ async function cancelIt(change){
 async function refresh(){
   const st = await rpc('request_status', {p_token:TOKEN}) || false;
   if(JSON.stringify(st)!==JSON.stringify(STATUS)){ STATUS = st; }
-  UPDATED = new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  // opened from a copied link: remember it on this device too
+  if(st && !MEM.reqs.some(x => x.token===TOKEN)){ MEM.reqs = [{token:TOKEN, start:st.start, end:st.end}, ...MEM.reqs].slice(0, 8); saveMem(); }
 }
 
 function draw(){
   const app = document.getElementById('app');
   const y = scrollY, a = document.activeElement, focusId = a && a.closest('label') ? [...app.querySelectorAll('input,textarea')].indexOf(a) : -1;
-  app.replaceChildren(...[TOKEN ? statusView() : DONE ? doneView() : INFO ? [formView(), timeSheet()] : [header('Request a stay'), h(ERR ? 'div' : 'p', {class:ERR ? 'err' : 'mut'}, ERR || 'Loading…')]].flat(Infinity).filter(Boolean));
+  app.replaceChildren(...[TOKEN ? statusView() : INFO ? [formView(), timeSheet()] : [header('Request a stay'), h(ERR ? 'div' : 'p', {class:ERR ? 'err' : 'mut'}, ERR || 'Loading…')]].flat(Infinity).filter(Boolean));
   if(focusId >= 0) app.querySelectorAll('input,textarea')[focusId]?.focus();
   scrollTo(0, y);
 }
