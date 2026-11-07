@@ -305,6 +305,7 @@ button.gp-signbtn{cursor:pointer;display:block}
 .gp-bw .gp-lodge,.gp-bw .gp-wt span,.gp-bw .gp-pt>span:first-child{color:#111}
 .gp-bw .gp-h-med{font:19pt/1 Questrial,"Century Gothic",sans-serif;color:#222;-webkit-text-stroke:0;letter-spacing:0}
 .gp-bw .gp-sub,.gp-bw .gp-mth,.gp-bw .gp-mn{color:#111}
+@media print{.gp-bw .gp-ln,.gp-bw .gp-ta{color:#111!important}}
 .gp-bw .gp-paws{gap:.24in}
 .gp-bw .gp-paws .gp-paw{width:.24in!important;height:.24in!important}
 .gp-bw .gp-foot .gp-paw{width:.22in!important;height:.22in!important}
