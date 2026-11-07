@@ -32,9 +32,12 @@ const fmtDate = v => { if(!v) return ''; const m = /^(\d{4})-(\d\d)-(\d\d)$/.exe
 const get = (o, path) => path.split('.').reduce((a, k) => a == null ? undefined : a[k], o);
 
 function guestPaper(d, base, opts){
-  base = base || ''; opts = opts || {}; LINES = !!opts.outline;
+  base = base || ''; opts = opts || {};
+  // art: 'outline' = our line tracing of the colour pictures, 'lineart' = drawn-as-line-art clip art
+  const ART = opts.lineart ? 'lineart/' : opts.outline ? 'outline/' : '';
+  LINES = !!ART;
   const E = !!opts.edit, D = d || {}, pets = (D.pets && D.pets.length) ? D.pets : [{}];
-  const img = (n, cls) => '<img class="gp-art'+(cls ? ' gp-'+cls : '')+'" src="'+base+'img/form/'+(LINES ? 'outline/' : '')+n+'.png" alt="">';
+  const img = (n, cls) => '<img class="gp-art'+(cls ? ' gp-'+cls : '')+'" src="'+base+'img/form/'+ART+n+'.png" alt="">';
   // the answer on a line: an input when filling in on screen, text when printing
   const val = (k, f) => { const v = get(D, k); return f==='date' ? fmtDate(v) : v; };
   const ans = (k, f) => E && k

@@ -113,7 +113,8 @@ body.blank #paper{display:block;padding:20px 0}
    app (through the request-spot server function, which runs the spam check), where Ashley
    files it onto the family. "Print or save as PDF" prints the paper form with the answers
    on it; ?blank shows (and prints) the empty paper form, which is what new-guest-forms.pdf is;
-   ?blank&outline is the ink-saving line-art version (new-guest-forms-outline.pdf). */
+   ?blank&outline is the ink-saving traced-outline version (new-guest-forms-outline.pdf);
+   ?blank&lineart uses drawn line-art clip art instead (new-guest-forms-lineart.pdf). */
 const SUPA_URL = 'https://hmkhdmtededcxsjnlqxz.supabase.co';
 const SEND_URL = SUPA_URL+'/functions/v1/request-spot', SEND_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2hkbXRlZGVkY3hzam5scXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5NzAzNTIsImV4cCI6MjEwOTU0NjM1Mn0.MAwoo-9B3v6M5GNUkEXQpnnmB-DMY3fgSD6r9RDod10';
 const TURNSTILE_SITE = '0x4AAAAAAF25ETdEUOtMMctP';
@@ -469,7 +470,7 @@ async function send(){
 
 if(new URLSearchParams(location.search).has('blank')){
   document.body.classList.add('blank'); addPaperStyles();
-  document.getElementById('paper').innerHTML = guestPaper(null, '', {outline:new URLSearchParams(location.search).has('outline')});
+  document.getElementById('paper').innerHTML = guestPaper(null, '', {outline:new URLSearchParams(location.search).has('outline'), lineart:new URLSearchParams(location.search).has('lineart')});
   document.fonts.ready.then(() => guestPaperFit(document.getElementById('paper')));
 } else draw();
 </script>
