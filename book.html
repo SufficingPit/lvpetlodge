@@ -532,6 +532,9 @@ function formCard(s){
 function statusView(){
   if(STATUS===null) return [header('Your request'), h('p',{class:'mut'},'Loading…')];
   if(!STATUS) return [header('Your request'), h('div',{class:'warn'}, 'We couldn’t find that request. Check the link.'), h('a',{href:location.pathname, class:'lk'}, 'Make a new request')];
+  if(STATUS.status==='closed') return [header('Your request'), h('div',{class:'card'}, h('b',{}, 'This request is closed'),
+      h('div',{class:'mut'}, 'Its details aren’t shown any more. Questions about it? Call or text us.')),
+    callUs(), h('a',{href:location.pathname, class:'b', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:12px'}, 'Make a new request')];
   const s = STATUS, waiting = s.status==='pending';
   const names = s.pets.map(p => p.name).join(', ');
   const link = location.origin + location.pathname + '?r=' + TOKEN;
@@ -606,7 +609,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
     if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:['dog','cat','other'].includes(p.species) ? p.species : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A', kind:p.kind||'', cage:p.cage!==false, medsOn:!!p.medsOn, meds:p.meds||'', note:p.note||''})); }
   // requests sent from this device that are still ahead
   Promise.all(MEM.reqs.map(x => rpc('request_status', {p_token:x.token}).then(st => st && {...x, status:st.status, names:st.pets.map(p => p.name).join(', ')}).catch(() => null)))
-    .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled' && x.status!=='deleted'); draw(); });
+    .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled' && x.status!=='deleted' && x.status!=='closed'); draw(); });
   try { INFO = await rpc('booking_info'); F.month = INFO.today.slice(0,7); petsChanged(); }
   catch(e){ ERR = navigator.onLine===false ? 'This page couldn’t load because the connection dropped. Please refresh once you’re back online.' : 'Sorry, this page couldn’t load just now. Please refresh in a minute, or call or text us at '+CALL_TEXT+'.'; }
   draw();
