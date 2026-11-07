@@ -496,7 +496,9 @@ function formView(){
       h('button',{class:'b', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send request'),
       h('p',{class:'mut', style:'margin-top:10px'}, 'Your spot is held while we look at your request.')]];
 }
-const LABEL = {pending:'Waiting for our reply', approved:'Booked', declined:'Not booked', cancelled:'Cancelled', expired:'Not booked', deleted:'Cancelled'};
+const LABEL = {pending:'Waiting for our reply', approved:'Booked', declined:'Couldn’t book', cancelled:'Cancelled', expired:'Couldn’t book', deleted:'Cancelled'};
+// the headline on the request's own page
+const TITLE = {pending:'Waiting for our reply', approved:'You’re booked!', declined:'Sorry, we couldn’t book this stay', expired:'Sorry, we couldn’t book this stay', cancelled:'Cancelled', deleted:'Cancelled'};
 function mineBox(){
   if(!MINE.length) return null;
   return h('div',{class:'card'}, h('span',{class:'lbl'}, MINE.length===1 ? 'Your request' : 'Your requests'),
@@ -534,10 +536,11 @@ function statusView(){
   const names = s.pets.map(p => p.name).join(', ');
   const link = location.origin + location.pathname + '?r=' + TOKEN;
   return [header('Your request'),
-    JUST && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!')),
-    h('div',{class:s.status==='approved' ? 'ok' : waiting ? 'card' : 'warn'}, h('b',{}, LABEL[s.status] || s.status),
+    JUST && waiting && h('div',{class:'ok'}, h('b',{}, 'Request sent. Thanks'+(MEM.me?.name ? ', '+MEM.me.name.split(/\s+/)[0] : '')+'!')),
+    h('div',{class:s.status==='approved' ? 'ok' : waiting ? 'card' : 'warn'}, h('b',{}, TITLE[s.status] || LABEL[s.status] || s.status),
       waiting ? h('div',{class:'mut'}, 'We’ll text or call you soon. This page updates by itself.')
-      : s.status==='approved' ? h('div',{}, 'See you then!') : null),
+      : s.status==='approved' ? h('div',{}, 'See you then!')
+      : s.status==='declined' || s.status==='expired' ? h('div',{}, 'If other dates work, you can make a new request, or call or text us.') : null),
     s.reply && h('div',{class:'card'}, h('span',{class:'lbl'}, 'Note from us'), s.reply),
     h('div',{class:'card'},
       h('div',{}, h('b',{}, 'Drop-off '), wmd(s.start)+', '+t12(s.arr)),

@@ -222,7 +222,7 @@ const API = 'https://hmkhdmtededcxsjnlqxz.supabase.co/rest/v1/rpc/', KEY = 'sb_p
 (() => { let M; try { M = JSON.parse(localStorage.getItem('lvpl-mine')); } catch(e) {} const reqs = (M && M.reqs) || []; if(!reqs.length) return;
   const today = new Date(), ymd = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
   const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], md = d => MO[+d.slice(5,7)-1]+' '+(+d.slice(8));
-  const LBL = {pending:'Waiting for our reply', approved:'Booked', declined:'Not booked', expired:'Not booked'};
+  const LBL = {pending:'Waiting for our reply', approved:'Booked', declined:'Couldn’t book', expired:'Couldn’t book'};
   Promise.all(reqs.filter(x => x.end >= ymd).map(x => fetch(API+'request_status', {method:'POST', headers:{apikey:KEY, 'Content-Type':'application/json'}, body:JSON.stringify({p_token:x.token})})
     .then(r => r.ok ? r.json() : null).then(st => st && LBL[st.status] && {x, st}).catch(() => null))).then(list => {
     list = list.filter(Boolean); if(!list.length) return;
