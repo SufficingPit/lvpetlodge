@@ -78,8 +78,8 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .views button+button{border-left:1px solid var(--field)}
 .views .on{background:var(--pri);color:var(--onp)}
 body.wide #app{max-width:880px}
-.sheetwrap{margin:10px -16px 0;overflow:hidden}
-.sheets{transform-origin:top left}
+.sheetwrap{margin:10px -12px 0}
+.sheets{width:100%}
 .petbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 auto 10px;width:8.5in;max-width:100%;padding:10px 4px 0}
 .petbar b{font-size:calc(20px / var(--k,1))}
 .petbar .lk{font-size:calc(16px / var(--k,1));min-height:calc(40px / var(--k,1))}
@@ -315,7 +315,8 @@ function setK(o, k, v){
 }
 function tickBox(b){
   const k = b.dataset.k, v = b.dataset.v, t = b.dataset.t;
-  if(t==='one') setK(F, k, getK(F, k)===v ? '' : v);
+  if(t==='bool') setK(F, k, !getK(F, k));
+  else if(t==='one') setK(F, k, getK(F, k)===v ? '' : v);
   else if(t==='fixed'){ const pet = getK(F, k.replace(/\.fixed$/, ''));
     if(pet.sex===v && pet.fixed==='yes') pet.fixed = ''; else { pet.sex = v; pet.fixed = 'yes'; } }
   else { const list = getK(F, k) || []; setK(F, k, list);
@@ -334,7 +335,7 @@ function paperView(){
     const p = F.pets[i];
     pp.prepend(h('div',{class:'petbar'}, h('b',{}, F.pets.length > 1 ? 'Pet '+(i+1)+(p.name.trim() ? ': '+p.name.trim() : '') : (p.name.trim() || 'Your pet')),
       F.pets.length > 1 && h('button',{type:'button', class:'lk bad', onclick:()=>{ F.pets.splice(i, 1); saveDraft(); draw(); }}, 'Remove this pet')));
-    if(i===F.pets.length-1 && F.pets.length < 8) pp.after(h('button',{type:'button', class:'b2 addpet', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet (two more pages)'));
+    if(i===F.pets.length-1 && F.pets.length < 8) pp.after(h('button',{type:'button', class:'b2 addpet', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet'));
   });
   sheets.oninput = e => {
     const el = e.target, k = el.dataset && el.dataset.k; if(!k) return;
@@ -359,11 +360,12 @@ function paperView(){
     if(e.target.closest('[data-sign]')){ SIGNING = true; draw(); }
   };
   // fit the 8.5-inch pages to the screen
-  const fit = () => { if(!wrap.isConnected) return;
-    guestPaperFit(sheets);
-    const k = Math.min(1, wrap.clientWidth / (8.5*96 + 8));
-    sheets.style.setProperty('--k', k); sheets.style.transform = 'scale('+k+')'; sheets.style.width = (100/k)+'%';
-    wrap.style.height = sheets.getBoundingClientRect().height+'px'; };
+  // zoom the 8.5-inch pages to the width there is, whenever that changes
+  let lastW = 0;
+  const fit = () => { if(!wrap.isConnected || !wrap.clientWidth) return;
+    if(wrap.clientWidth!==lastW){ lastW = wrap.clientWidth; const k = Math.min(1, lastW / (8.5*96 + 4)); sheets.style.zoom = k; sheets.style.setProperty('--k', k); }
+    guestPaperFit(sheets); };
+  if(window.ResizeObserver) new ResizeObserver(fit).observe(wrap);
   setTimeout(fit, 0); document.fonts.ready.then(fit);
   return wrap;
 }
@@ -372,14 +374,13 @@ function signSheet(){
   return h('div',{class:'tov', onclick:e=>{ if(e.target===e.currentTarget) close(); }},
     h('div',{class:'tsh', role:'dialog', 'aria-label':'Sign the waiver'},
       h('div',{class:'row', style:'margin-bottom:6px'}, h('b',{style:'font-size:18px'}, 'Sign the waiver'), h('button',{type:'button', class:'lk', onclick:close}, 'Close')),
-      h('label',{class:'check'}, h('input',{type:'checkbox', checked:F.agree, onchange:e=>{ F.agree = e.target.checked; saveDraft(); }}),
-        h('span',{}, 'I acknowledge that the above information is correct and that I have read the above contract and agree as owner or representative of the animal to the foregoing terms.')),
-      tf(F.sign, 'name', 'Type your full name', {ac:'name', max:80}),
       h('div',{class:'row', style:'margin-bottom:5px'}, h('span',{class:'lbl', style:'margin:0'}, 'Sign with your finger or mouse'),
         F.sign.img && h('button',{type:'button', class:'lk', style:'min-height:28px;padding:0 4px', onclick:()=>PAD.clear()}, 'Clear')),
       sigPad(),
-      h('button',{type:'button', class:'b', style:'margin-top:14px', onclick:close}, 'Done')));
+      h('div',{style:'margin-top:12px'}, tf(F.sign, 'name', 'Printed name', {ac:'name', max:80})),
+      h('button',{type:'button', class:'b', onclick:close}, 'Done')));
 }
+
 function doneView(){
   return [h('h1',{}, 'Form sent'),
     h('div',{class:'ok'}, h('b',{}, 'Thanks, '+F.owner.first.trim()+'! We got your new guest form'+(F.pets.length ? ' for '+F.pets.map(p => p.name.trim()).filter(Boolean).join(', ') : '')+'.')),
@@ -436,10 +437,10 @@ function problem(){
   if(!ph(O.cell) && !ph(O.main)) return 'Enter a phone number with area code in step 1.';
   const n = F.pets.findIndex(p => !p.name.trim() || (p.species==='other' && !p.other.trim()));
   if(n >= 0) return 'Enter a name (and kind, for small mammals) for each pet in step 3.';
-  const where = VIEW==='paper' ? ' (tap SIGN on the last page)' : '';
-  if(!F.agree) return 'Check the box to agree to the waiver'+where+'.';
-  if(F.sign.name.trim().length < 2) return 'Type your full name for the waiver'+where+'.';
-  if(!F.sign.img) return 'Sign the waiver'+(where || ' in the box')+'.';
+  const P = VIEW==='paper';
+  if(!F.agree) return P ? 'Tick the box by “I hereby acknowledge” on the last page.' : 'Check the box to agree to the waiver.';
+  if(!F.sign.img) return P ? 'Sign on the SIGN line on the last page.' : 'Sign the waiver in the box.';
+  if(F.sign.name.trim().length < 2) return P ? 'Print your name under your signature on the last page.' : 'Type your full name under the waiver.';
   return '';
 }
 async function send(){
@@ -464,7 +465,7 @@ if(new URLSearchParams(location.search).has('blank')){
   document.body.classList.add('blank'); addPaperStyles();
   document.getElementById('paper').innerHTML = guestPaper(null, '');
   document.fonts.ready.then(() => guestPaperFit(document.getElementById('paper')));
-} else { draw(); let rz = null; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if(VIEW==='paper' && !DONE && !document.activeElement?.matches('input,textarea')) draw(); }, 200); }); }
+} else draw();
 </script>
 </body>
 </html>
