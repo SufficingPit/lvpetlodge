@@ -185,7 +185,7 @@ let MINE = [];   // statuses of remembered requests, shown above the form
 
 /* ---------- state ---------- */
 const F = {ownFood:false, start:null, end:null, arr:'', pick:'',
-  name:'', phone:'', email:'', notes:'', pets:[{species:'dog', name:'', breed:'', g:'A'}], month:null, key:(crypto.randomUUID ? crypto.randomUUID() : null)};
+  name:'', phone:'', email:'', notes:'', items:'', pets:[{species:'dog', name:'', breed:'', g:'A'}], month:null, key:(crypto.randomUUID ? crypto.randomUUID() : null)};
 let INFO = null, DAYS = {}, CHECK = null, ERR = '', SENDING = false, DONE = null, STATUS = null;
 // pets with the same kennel letter share; spots needed = kennel letters in use, per kind
 const LETTERS = 'ABCDEF';
@@ -408,7 +408,7 @@ let PICK = null;
 
 function input(k, label, a = {}){
   return h('label',{class:'f'}, h('span',{class:'lbl'}, label),
-    h(a.area ? 'textarea' : 'input', {value:F[k], autocomplete:a.ac || 'off', type:a.type || null, inputmode:a.im || null, maxlength:a.max || null,
+    h(a.area ? 'textarea' : 'input', {value:F[k], autocomplete:a.ac || 'off', type:a.type || null, inputmode:a.im || null, maxlength:a.max || null, placeholder:a.ph || null,
       oninput:e => { F[k] = e.target.value; }, onchange:e => { if(k==='phone') e.target.value = F.phone = fmtPhone(F.phone); }}, a.area ? F[k] : null));
 }
 
@@ -441,7 +441,7 @@ async function send(){
   try {
     const token = await humanCheck();
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
-      body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
+      body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:[F.items.trim() && 'Bringing: '+F.items.trim().replace(/\s*\n\s*/g, ', '), F.notes.trim()].filter(Boolean).join('\n\n'),
         ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined,
         meds:p.medsOn && (p.meds||'').trim() ? p.meds.trim() : undefined, note:(p.note||'').trim() || undefined}))}})});
     const r = await res.json().catch(() => ({ok:false}));
@@ -490,7 +490,8 @@ function formView(){
       h('h2',{}, '4. About you'),
       input('name','Your name',{ac:'name', max:80}),
       h('div',{class:'two'}, input('phone','Phone',{type:'tel', ac:'tel', im:'tel', max:20}), input('email','Email (optional)',{type:'email', ac:'email', max:120})),
-      input('notes','Anything else? (optional)',{area:true, max:1000}),
+      input('items','What are you bringing? (optional)',{area:true, max:300, ph:'e.g. Bed, leash, toys'}),
+      input('notes','Anything else? (optional)',{area:true, max:650}),
       ERR && h('div',{class:'err', role:'alert'}, ERR),
       h('button',{class:'b', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send request'),
       h('p',{class:'mut', style:'margin-top:10px'}, 'Your spot is held while we look at your request.')]];

@@ -137,7 +137,7 @@ const uuid = () => crypto.randomUUID ? crypto.randomUUID() : null;
 const newPet = () => ({species:'dog', other:'', name:'', breed:'', color:'', dob:'', sex:'', fixed:'', conditions:'', meds:[],
   diet:'', food:'', perDay:'', dietNotes:'', treats:'', treatFav:'', personality:[], alsoKnow:'', along:[], notes:'',
   jumps:'', bites:'', fights:'', likes:'', dislikes:'', chews:''});
-let F = {items:'', owner:{first:'', last:'', email:'', cell:'', main:'', work:'', city:'', state:'NE', zip:'', coName:'', coMain:'', coAlt:'',
+let F = {owner:{first:'', last:'', email:'', cell:'', main:'', work:'', city:'', state:'NE', zip:'', coName:'', coMain:'', coAlt:'',
   emName:'', emMain:'', emAlt:'', vet:'', vetPhone:'', pickupBy:''}, pets:[newPet()], agree:false, sign:{name:'', img:'', date:''}, key:uuid()};
 try { const d = JSON.parse(localStorage.getItem(DRAFT)); if(d && d.owner && d.pets) F = {...F, ...d, owner:{...F.owner, ...d.owner}, pets:d.pets.map(p => ({...newPet(), ...p}))}; } catch(e) {}
 // fill in what they told the request page, if this is the first time here
@@ -315,7 +315,6 @@ function simpleView(){
     h('h2',{}, '3. Your pets'),
     F.pets.map(petCard),
     F.pets.length < 8 && h('button',{type:'button', class:'b2', style:'width:100%', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet'),
-    h('div',{class:'card', style:'margin-top:12px'}, tf(F, 'items', 'Items you’ll bring along for their stay (optional)', {area:true, max:300, ph:'e.g. Bed, leash, food bag'})),
 
     h('h2',{}, '4. Waiver'),
     h('div',{class:'card'},
@@ -421,7 +420,7 @@ function askSheet(){
 }
 const blankOwner = () => ({first:'', last:'', email:'', cell:'', main:'', work:'', city:'', state:'NE', zip:'', coName:'', coMain:'', coAlt:'',
   emName:'', emMain:'', emAlt:'', vet:'', vetPhone:'', pickupBy:''});
-function clearFamily(){ F.owner = blankOwner(); F.items = ''; }
+function clearFamily(){ F.owner = blankOwner(); }
 function clearWaiver(){ F.agree = false; F.sign = {name:'', img:'', date:''}; }
 function clearAll(){ clearFamily(); clearWaiver(); F.pets = [newPet()]; F.key = uuid(); ERR = ''; scrollTo(0, 0); }
 
@@ -462,8 +461,8 @@ function addPaperStyles(){
   document.head.append(h('link',{rel:'stylesheet', href:GUEST_FONTS}), h('style',{}, guestPaperCSS));
 }
 function paperData(){
-  const empty = {items:'', owner:{...blankOwner(), state:''}, pets:F.pets.map(newPet), agree:false, sign:{name:'', img:'', date:''}};
-  const used = JSON.stringify({items:F.items, owner:{...F.owner, state:''}, pets:F.pets, agree:F.agree, sign:F.sign}) !== JSON.stringify(empty);
+  const empty = {owner:{...blankOwner(), state:''}, pets:F.pets.map(newPet), agree:false, sign:{name:'', img:'', date:''}};
+  const used = JSON.stringify({owner:{...F.owner, state:''}, pets:F.pets, agree:F.agree, sign:F.sign}) !== JSON.stringify(empty);
   const d = F.sign.date || (used ? todayYmd() : '');   // a form left empty prints blank, date and all
   return {...F, date:d, sign:{...F.sign, date:d}}; }
 async function printIt(){

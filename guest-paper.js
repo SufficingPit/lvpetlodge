@@ -1,7 +1,7 @@
 'use strict';
 /* The New Guest form as paper, based on Ashley's original printout (same wording), in
    black-and-white line art, laid out as:
-   - a family page (welcome, registration, contacts, vet, who may pick up, items brought),
+   - a family page (welcome, registration, contacts, vet, who may pick up),
    - one page per pet (everything about that pet: details, medication, diet, personality),
    - the waiver (tick to agree, sign, printed name, date).
    Used three ways:
@@ -74,9 +74,8 @@ function guestPaper(d, base, opts){
         +'<div class="gp-col">'+sub('Emergency Contact')+ln('Name:', 'owner.emName')+ln('Main Phone:', 'owner.emMain', 'tel')+ln('Alt. Phone:', 'owner.emAlt', 'tel')+'</div>'
       +'</div>'
       +'<div class="gp-vetrow">'+sub('Veterinarian')+'<div class="gp-fl2">'+ln('Name:', 'owner.vet')+ln('Phone:', 'owner.vetPhone', 'tel', 'gp-vph')+'</div></div>'
-      +band('Pick Up &amp; Belongings', 'gp-h-sm', 8)
-      +ln('My pet may be picked up and released to:', 'owner.pickupBy')
-      +multi('Items you brought along with you for this stay:', 'items', 3)
+      +band('Pick Up', 'gp-h-sm', 8)
+      +multi('My pet may be picked up and released to:', 'owner.pickupBy', 3)
       +'<div class="gp-foot">'+paw('#1f6fb5','.3in')+'<b>Pet pages next &#8594;</b></div>'
       +'</div></section>';
   }
