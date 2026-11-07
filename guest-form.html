@@ -88,7 +88,7 @@ body{overflow-x:clip}
 .petbar b{font-size:calc(20px / var(--k,1))}
 .petbar .lk{font-size:calc(16px / var(--k,1));min-height:calc(40px / var(--k,1))}
 .petbar .pbtns{display:flex;align-items:center;gap:calc(14px / var(--k,1))}
-.petbar .clr{display:inline-flex;align-items:center;gap:calc(5px / var(--k,1))}
+.petbar .clr{display:inline-flex;align-items:center;gap:calc(5px / var(--k,1));color:var(--mut);font-weight:500}
 .b.bad{background:var(--bad);color:var(--card)}
 .addpet{display:block;width:calc(7.4in - 28px / var(--k,1));max-width:100%;margin:0 auto 18px;min-height:calc(52px / var(--k,1));font-size:calc(17px / var(--k,1));border-radius:calc(12px / var(--k,1))}
 .tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
@@ -493,10 +493,11 @@ function doneView(){
     h('div',{class:'ok'}, h('b',{}, 'Thanks, '+F.owner.first.trim()+'! '+(MODE==='pets' ? 'We got '+petNamesText(F.pets)+'’s page.' : MODE==='update' ? 'We got your updated guest form.'
       : 'We got your new guest form'+(F.pets.length ? ' for '+petNamesText(F.pets) : '')+'.'))),
     h('p',{}, 'You don’t need to bring a paper copy. If anything changes later, you can update it from our site, or just tell us at drop-off.'),
-    REQ && h('a',{class:'b2', href:'book.html?r='+REQ, style:'display:flex;align-items:center;justify-content:center;text-decoration:none;margin-bottom:10px;color:var(--ink)'}, 'Back to your request'),
-    h('button',{type:'button', class:'b2', style:'width:100%;margin-bottom:10px', onclick:printIt}, 'Print or save a copy'),
-    h('a',{class:'b', href:'book.html', style:'display:flex;align-items:center;justify-content:center;text-decoration:none'}, 'Check open spots'),
-    h('p',{style:'margin-top:14px'}, h('a',{href:'./', class:'lk'}, 'Back to our site'))];
+    // from a request: back to it; otherwise home, with booking a stay as the plain next step
+    REQ ? h('a',{class:'b', href:'book.html?r='+REQ, style:'display:flex;align-items:center;justify-content:center;text-decoration:none'}, 'Back to your request')
+      : h('a',{class:'b', href:'./', style:'display:flex;align-items:center;justify-content:center;text-decoration:none'}, 'Back to our site'),
+    h('button',{type:'button', class:'b2', style:'width:100%;margin-top:10px', onclick:printIt}, 'Print or save a copy'),
+    !REQ && h('p',{style:'margin-top:14px'}, 'Ready to book? ', h('a',{href:'book.html'}, 'Request a stay'), '.')];
 }
 
 function draw(){
