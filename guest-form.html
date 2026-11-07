@@ -410,7 +410,7 @@ async function printIt(){
   const paper = document.getElementById('paper');
   paper.innerHTML = guestPaper(paperData(), '');
   await document.fonts.ready.catch(() => {});
-  guestPaperFit(paper);
+  paper.style.cssText = 'display:block;position:absolute;left:-10000px;top:0'; guestPaperFit(paper); paper.style.cssText = '';
   await Promise.all([...paper.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
   window.print();
 }
