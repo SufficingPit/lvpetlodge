@@ -255,6 +255,12 @@ function petCard(p, i){
     p.species==='other' && h('div',{}, h('span',{class:'lbl'}, 'Cage'),
       h('div',{class:'seg'}, [[true,'I’ll bring one'],[false,'I need one']].map(([v,l]) => h('button',{class:p.cage===v ? 'on' : '', onclick:()=>{ p.cage = v; petsChanged(); }}, l))),
       h('p',{class:'mut', style:'margin:6px 0 0;font-size:13px'}, p.cage ? 'Bring their cage or enclosure (or a temporary one).' : 'They’ll stay in a cat condo, if one is free.')),
+    h('div',{style:'margin-top:10px'}, h('span',{class:'lbl'}, 'Medication'),
+      h('div',{class:'seg'}, [[false,'None'],[true,'Needs meds']].map(([v,l]) => h('button',{class:!!p.medsOn===v ? 'on' : '', onclick:()=>{ p.medsOn = v; draw(); }}, l)))),
+    p.medsOn && h('label',{class:'f', style:'margin-top:8px'}, h('span',{class:'lbl'}, 'What and when'),
+      h('textarea',{rows:2, maxlength:300, placeholder:'Name, dose and when to give it. e.g. Apoquel 16 mg, 1 tablet with breakfast', oninput:e=>{ p.meds = e.target.value; }}, p.meds || '')),
+    h('label',{class:'f', style:'margin-top:8px'}, h('span',{class:'lbl'}, 'Notes about '+(p.name.trim() || 'this pet')+' (optional)'),
+      h('textarea',{rows:2, maxlength:300, placeholder:'Allergies, fears, how they do with other pets…', oninput:e=>{ p.note = e.target.value; }}, p.note || '')),
     many && lettered(p) && h('div',{}, h('span',{class:'lbl'}, 'Kennel'),
       h('div',{class:'chips'}, [...LETTERS.slice(0, F.pets.filter(lettered).length)].map(l => {
         const clash = F.pets.some(x => x!==p && lettered(x) && x.g===l && x.species!==p.species);
@@ -270,6 +276,7 @@ function estimate(){
   const nights = Math.max(1, nightsBetween(F.start, F.end)), lines = [];
   F.pets.forEach((p, i) => { const r = R0[p.species==='cat' ? 'cat' : p.species==='other' ? 'other' : 'dog'] || 0;
     lines.push([petLabel(p, i)+' · '+nights+(nights===1 ? ' night' : ' nights')+' × '+money(r), nights*r]); });
+  if(R0.meds) F.pets.forEach((p, i) => { if(p.medsOn) lines.push([petLabel(p, i)+'’s meds · '+nights+(nights===1 ? ' night' : ' nights')+' × '+money(R0.meds), nights*R0.meds]); });
   const by = {}; F.pets.forEach(p => { if(lettered(p)) by[p.species+p.g] = (by[p.species+p.g]||0) + 1; });
   const sharing = Object.values(by).filter(n => n > 1).reduce((a, n) => a + n, 0);
   if(sharing && R0.share) lines.push(['Sharing a kennel · '+sharing+' pets × '+nights+(nights===1 ? ' night' : ' nights')+' × −'+money(R0.share), -sharing*nights*R0.share]);
@@ -283,7 +290,7 @@ function estimateCard(){
   return h('div',{class:'card est'}, h('span',{class:'lbl'}, 'Estimated price'),
     e.lines.map(([t, n]) => h('div',{class:'row el'}, h('span',{}, t), h('span',{}, (n < 0 ? '−' : '')+money(Math.abs(n))))),
     h('div',{class:'row el tot'}, h('b',{}, 'Estimated total'), h('b',{}, money(e.total))),
-    h('p',{class:'mut', style:'margin:8px 0 0;font-size:13px'}, 'The final price is confirmed at pickup (meds or extras can add to it).'+(INFO.rates.card ? ' Card payments add '+INFO.rates.card+'%.' : '')));
+    h('p',{class:'mut', style:'margin:8px 0 0;font-size:13px'}, 'The final price is confirmed at pickup.'+(INFO.rates.card ? ' Card payments add '+INFO.rates.card+'%.' : '')));
 }
 const rangeOpen = (s, e) => { for(let d = s; d < e; d = addDays(d, 1)) if(nightOpen(d)===false) return false; return true; };
 const closedOn = d => DAYS[d]?.closed;
@@ -411,18 +418,20 @@ async function send(){
   const digits = F.phone.replace(/\D/g,'');
   ERR = !F.start || !F.end ? 'Pick your dates.' : !F.arr || !F.pick ? 'Pick drop-off and pickup times.'
     : F.name.trim().length < 2 ? 'Enter your name.' : !(digits.length===10 || (digits.length===11 && digits[0]==='1')) ? 'Enter a phone number with area code.'
-    : n >= 0 ? 'Enter a name (and kind, for other pets) for each pet in step 1.' : '';
+    : n >= 0 ? 'Enter a name (and kind, for other pets) for each pet in step 1.'
+    : F.pets.some(p => p.medsOn && !(p.meds||'').trim()) ? 'Say what medication and when, or pick None, in step 1.' : '';
   if(ERR){ draw(); return; }
   SENDING = true; draw();
   try {
     const token = await humanCheck();
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(),
-        ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined}))}})});
+        ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined,
+        meds:p.medsOn && (p.meds||'').trim() ? p.meds.trim() : undefined, note:(p.note||'').trim() || undefined}))}})});
     const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
     if(r.ok){
       MEM.reqs = [{token:r.token, start:F.start, end:F.end}, ...MEM.reqs.filter(x => x.token!==r.token)].slice(0, 8);
-      MEM.me = {ownFood:F.ownFood, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage}))};
+      MEM.me = {ownFood:F.ownFood, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage, medsOn:!!p.medsOn, meds:p.meds||'', note:p.note||''}))};
       saveMem(); try { sessionStorage.setItem('lvpl-new', r.token); } catch(e) {}
       location.assign('?r='+r.token); return; }
     else { ERR = r.reason; if(/spots|closed|soon|far|shortest/i.test(r.reason)){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
@@ -465,7 +474,7 @@ function formView(){
       h('h2',{}, '4. About you'),
       input('name','Your name',{ac:'name', max:80}),
       h('div',{class:'two'}, input('phone','Phone',{type:'tel', ac:'tel', im:'tel', max:20}), input('email','Email (optional)',{type:'email', ac:'email', max:120})),
-      input('notes','Anything we should know? (optional)',{area:true, max:1000}),
+      input('notes','Anything else? (optional)',{area:true, max:1000}),
       ERR && h('div',{class:'err', role:'alert'}, ERR),
       h('button',{class:'b', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send request'),
       h('p',{class:'mut', style:'margin-top:10px'}, 'Your spot is held while we look at your request.')]];
@@ -550,7 +559,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
   }
   // fill in what they told us last time
   if(MEM.me){ F.ownFood = !!MEM.me.ownFood; F.name = MEM.me.name || ''; F.phone = MEM.me.phone || ''; F.email = MEM.me.email || '';
-    if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:['dog','cat','other'].includes(p.species) ? p.species : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A', kind:p.kind||'', cage:p.cage!==false})); }
+    if(MEM.me.pets && MEM.me.pets.length) F.pets = MEM.me.pets.map(p => ({species:['dog','cat','other'].includes(p.species) ? p.species : 'dog', name:p.name||'', breed:p.breed||'', g:p.g||'A', kind:p.kind||'', cage:p.cage!==false, medsOn:!!p.medsOn, meds:p.meds||'', note:p.note||''})); }
   // requests sent from this device that are still ahead
   Promise.all(MEM.reqs.map(x => rpc('request_status', {p_token:x.token}).then(st => st && {...x, status:st.status, names:st.pets.map(p => p.name).join(', ')}).catch(() => null)))
     .then(list => { MINE = list.filter(x => x && x.end >= ymdOf(new Date()) && x.status!=='cancelled' && x.status!=='deleted'); draw(); });
