@@ -52,8 +52,7 @@ function guestPaper(d, base, opts){
   // ---------- the family: once, however many pets
   function familyPage(){
     return '<section class="gp-pg gp-fam"><div class="gp-frame">'
-      +'<div class="gp-hd">'+img('corgi', 'corgi')+'<div class="gp-welcome">WELCOME</div>'+img('beagle', 'beagle')+'</div>'
-      +'<div class="gp-lodge"><span>Little Village Pet Lodge</span>'+img('kitten', 'kit')+'</div>'
+      +'<div class="gp-hd">'+img('corgi', 'corgi')+'<div class="gp-ttl"><span class="gp-welcome">Welcome to</span><span class="gp-lodge">Little Village Pet Lodge</span></div>'+img('beagle', 'beagle')+'</div>'
       +'<p class="gp-intro">Thank you for giving us the opportunity to care for your pet. To ensure the best care possible, please take the time to fill in this form completely.</p>'
       +band('REGISTRATION', 'gp-h-reg', 9)
       +'<div class="gp-reg"><div class="gp-col gp-own">'
@@ -198,14 +197,12 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-foot{margin-top:auto;align-self:flex-end;display:flex;align-items:center;gap:.2in;font:700 12pt Arimo,Arial,sans-serif;padding-top:.04in}
 .gp-foot span{font:italic 400 9.5pt Verdana,"DejaVu Sans",sans-serif;color:#555}
 /* family page */
-.gp-hd{display:flex;align-items:center;gap:.12in;height:1in}
-.gp-corgi{width:1.35in;height:1.05in}
-.gp-welcome{flex:1;text-align:center;font:58pt/1 "Alfa Slab One",Rockwell,serif;letter-spacing:.01em;color:#f9b54c;-webkit-text-stroke:1.2px #c46a10}
-.gp-beagle{width:1.05in;height:1in;align-self:flex-end;margin-left:-.3in;position:relative;z-index:0}
-.gp-welcome{position:relative;z-index:1}
-.gp-lodge{display:flex;align-items:flex-end;gap:.08in;margin:.02in 0 .06in .1in}
-.gp-lodge span{font:31pt/1.1 Caladea,Cambria,Georgia,serif;color:#1f4db5}
-.gp-kit{width:.45in;height:.6in}
+.gp-hd{display:flex;align-items:center;gap:.15in;height:1.05in;margin-bottom:.06in}
+.gp-corgi{width:1.15in;height:.95in}
+.gp-beagle{width:1.05in;height:1in}
+.gp-ttl{flex:1;display:flex;flex-direction:column;align-items:center;gap:.03in}
+.gp-welcome{font:22pt/1 "Alfa Slab One",Rockwell,serif;color:#f39200;letter-spacing:.03em}
+.gp-lodge{font:31pt/1.05 Caladea,Cambria,Georgia,serif;color:#1f4db5;white-space:nowrap}
 .gp-intro{font-size:9pt;margin:0 .1in .04in!important;line-height:1.35}
 .gp-h-reg{white-space:nowrap;font:16pt/1 Cinzel,"Times New Roman",serif;letter-spacing:.06em;color:#333}
 .gp-h-sm{white-space:nowrap;font:16pt/1 Questrial,"Century Gothic",sans-serif;color:#222}
