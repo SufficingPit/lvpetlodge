@@ -236,6 +236,24 @@ function petCard(p, i){
 
 /* ---------- signature pad ---------- */
 let PAD = null;
+// The signature is kept small: drawn at screen size (not the phone's 2-3x pixels), at most 360 wide,
+// in solid ink only. A full-size phone signature alone can go over the 60 KB form limit.
+function shrinkSig(src){
+  return new Promise(res => {
+    if(!src) return res('');
+    const im = new Image();
+    im.onload = () => {
+      const w = Math.min(360, im.width), hgt = Math.max(1, Math.round(im.height * w / im.width));
+      const c = document.createElement('canvas'); c.width = w; c.height = hgt;
+      const x = c.getContext('2d'); x.drawImage(im, 0, 0, w, hgt);
+      const d = x.getImageData(0, 0, w, hgt), a = d.data;
+      for(let i = 0; i < a.length; i += 4){ const al = a[i+3] < 90 ? 0 : 255;
+        a[i] = 29; a[i+1] = 60; a[i+2] = 140; a[i+3] = al; }
+      x.putImageData(d, 0, 0); res(c.toDataURL('image/png'));
+    };
+    im.onerror = () => res(src); im.src = src;
+  });
+}
 function sigPad(){
   const c = h('canvas',{'aria-label':'Signature'}), wrap = h('div',{class:'pad'}, c, !F.sign.img && h('div',{class:'hint'}, h('span',{}, 'Sign here')));
   let ctx, drawing = false, last = null, dirty = false;
@@ -246,7 +264,7 @@ function sigPad(){
   c.onpointerdown = e => { c.setPointerCapture(e.pointerId); drawing = true; last = pt(e); wrap.querySelector('.hint')?.remove(); ctx.beginPath(); ctx.arc(last[0], last[1], 1.1, 0, 7); ctx.fillStyle = '#1d3c8c'; ctx.fill(); dirty = true; };
   c.onpointermove = e => { if(!drawing) return; const p = pt(e); ctx.beginPath(); ctx.moveTo(...last); ctx.lineTo(...p); ctx.stroke(); last = p; dirty = true; };
   c.onpointerup = c.onpointercancel = () => { if(!drawing) return; drawing = false;
-    if(dirty){ const first = !F.sign.img; F.sign.img = c.toDataURL('image/png'); saveDraft(); if(first) draw(); } };
+    if(dirty){ const first = !F.sign.img; shrinkSig(c.toDataURL('image/png')).then(v => { F.sign.img = v; saveDraft(); if(first) draw(); }); } };
   requestAnimationFrame(fit);
   PAD = {clear(){ F.sign.img = ''; saveDraft(); draw(); }};
   return wrap;
@@ -490,12 +508,16 @@ async function send(){
   if(ERR){ draw(); document.getElementById('err')?.scrollIntoView({block:'center'}); return; }
   SENDING = true; draw();
   try {
+    if(F.sign.img && F.sign.img.length > 30000) F.sign.img = await shrinkSig(F.sign.img);   // drafts saved before signatures were kept small
     const token = await humanCheck();
     F.sign.date = todayYmd();
     const data = {...paperData(), key:undefined, agree:true,
       pets:F.pets.map(p => ({...p, meds:(p.meds || []).filter(m => [m.name, m.dose, m.freq, m.instr].some(x => (x || '').trim()))}))};
+    if(JSON.stringify({key:F.key, data}).length > 59000){
+      SENDING = false; ERR = 'This form is too big to send. Try signing again, or shorten the longest answers.'; draw(); return; }
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, kind:'form', p:{key:F.key, data}})});
+    // (the server takes forms up to 60 KB; a typical one with a signature is well under 20 KB)
     const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
     if(r.ok){ DONE = true; try { localStorage.removeItem(DRAFT); } catch(e) {} scrollTo(0, 0); }
     else ERR = r.reason || 'Couldn’t send. Please try again.';
