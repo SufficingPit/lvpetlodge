@@ -323,8 +323,8 @@ function formView(){
     : [h('h1',{}, 'New guest form'),
       h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off.')];
   return [...intro,
-    REQ && h('p',{class:'mut', style:'font-size:13px'}, 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. ',
-      h('a',{href:'book.html?r='+REQ}, 'Back to your request')),
+    REQ && h('p',{class:'mut', style:'font-size:13px'}, MODE==='new' ? 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. Already filled one out with us before? Then you can skip it. '
+      : 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. ', h('a',{href:'book.html?r='+REQ}, 'Back to your request')),
     h('p',{class:'mut', style:'font-size:13px'}, 'Tap a line to write on it and a box to tick it.'),
     VIEW==='paper' ? paperView() : simpleView(),
     ERR && h('div',{class:'err', id:'err'}, ERR),

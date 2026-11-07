@@ -517,7 +517,8 @@ function formCard(s){
   const pets = f.newPets || [];
   if(!f.family) return h('div',{class:'card'}, h('b',{}, 'First time with us? One more step'),
     h('div',{class:'mut', style:'margin-top:4px'}, 'Before your first stay we need a new guest form: your details, a page for each pet, and our waiver. It takes about 10 minutes, and you can do it now or anytime before drop-off.'),
-    go('Fill out the guest form'), paper);
+    go('Fill out the guest form'), paper,
+    h('p',{class:'mut', style:'margin:8px 0 0;font-size:14px'}, 'Filled one out with us before, maybe with a different phone number? You don’t need to do it again. We’ll match it up with your name and pets.'));
   if(f.update) return h('div',{class:'card'}, h('b',{}, 'Please check your details'),
     h('div',{class:'mut', style:'margin-top:4px'}, 'We’d like to make sure we have your latest information. It only takes a minute to look it over.'),
     go('Review my guest form'), paper);
