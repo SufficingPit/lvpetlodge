@@ -83,6 +83,20 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .sharing{font-size:15px;margin-top:2px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .link{word-break:break-all;font-size:14px}
+.tbtn{width:100%;min-height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border:1px solid var(--field);border-radius:12px;background:var(--card);font-size:17px;font-weight:600;text-align:left}
+.tbtn.empty span:first-child{color:var(--mut);font-weight:500}
+.tnote{margin:6px 0 0;font-size:14px;color:var(--mut)}
+.tnote b{color:var(--ink)}
+.tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.tsh{background:var(--bg);width:100%;max-width:520px;max-height:80vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(min-width:660px){.tov{align-items:center}.tsh{border-radius:18px}}
+.tlist{overflow:auto;padding:0 12px 16px}
+.tgrp{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:12px 4px 6px}
+.trow{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border:0;border-radius:10px;background:none;font-size:17px}
+.trow:hover{background:var(--card)}
+.trow.on{background:var(--pri);color:var(--onp)}
+.tfee{font-size:14px;font-weight:700;color:var(--warnfg);background:var(--warnbg);padding:2px 8px;border-radius:999px}
+.trow.on .tfee{background:rgba(255,255,255,.2);color:inherit}
 .est .el{font-size:15px;padding:4px 0;align-items:flex-start}
 .est .el span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
 .est .tot{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-size:17px}
@@ -166,7 +180,7 @@ const saveMem = () => { try { localStorage.setItem(MEMKEY, JSON.stringify(MEM));
 let MINE = [];   // statuses of remembered requests, shown above the form
 
 /* ---------- state ---------- */
-const F = {ownFood:false, start:null, end:null, arr:'', pick:'', otherArr:false, otherPick:false,
+const F = {ownFood:false, start:null, end:null, arr:'', pick:'',
   name:'', phone:'', email:'', notes:'', pets:[{species:'dog', name:'', breed:'', g:'A'}], month:null, key:(crypto.randomUUID ? crypto.randomUUID() : null)};
 let INFO = null, DAYS = {}, CHECK = null, ERR = '', SENDING = false, DONE = null, STATUS = null;
 // pets with the same kennel letter share; spots needed = kennel letters in use, per kind
@@ -255,8 +269,8 @@ function estimate(){
   const by = {}; F.pets.forEach(p => { if(lettered(p)) by[p.species+p.g] = (by[p.species+p.g]||0) + 1; });
   const sharing = Object.values(by).filter(n => n > 1).reduce((a, n) => a + n, 0);
   if(sharing && R0.share) lines.push(['Sharing a kennel · '+sharing+' pets × '+nights+(nights===1 ? ' night' : ' nights')+' × −'+money(R0.share), -sharing*nights*R0.share]);
-  if(F.arr && F.otherArr && INFO.fee) lines.push(['Drop-off outside hours', INFO.fee]);
-  if(F.pick && F.otherPick && INFO.fee) lines.push(['Pickup outside hours', INFO.fee]);
+  if(F.arr && !inHours(F.start, F.arr) && INFO.fee) lines.push(['Drop-off outside hours', INFO.fee]);
+  if(F.pick && !inHours(F.end, F.pick) && INFO.fee) lines.push(['Pickup outside hours', INFO.fee]);
   else if(F.pick && !F.ownFood && INFO.eveFee && INFO.eveFrom && F.pick >= INFO.eveFrom) lines.push(['Evening pickup (meal)', INFO.eveFee]);
   return {lines, total:lines.reduce((a, l) => a + l[1], 0)};
 }
@@ -299,11 +313,11 @@ function monthCal(){
     if(x?.closed) cls.push('closed'); else if(early || (open===false && !pickable)) cls.push('no');
     if(F.start && F.end && d > F.start && d < F.end) cls.push('in');
     if(d===F.start) cls.push('start'); if(d===F.end) cls.push('end');
-    // open days show what's left of each kind they need ("12 dog", "2 cat")
-    const n2 = need(), counts = x && !x.closed && !early && open!==false ? [n2.d ? x.dogs+' dog' : null, n2.c ? x.cats+' cat' : null].filter(Boolean) : [];
+    // a full day says what's full: kennels (dogs) or condos (cats)
+    const n2 = need(), fullWhat = x && !x.closed && !early && open===false ? [n2.d && x.dogs < n2.d ? 'kennels' : null, n2.c && x.cats < n2.c ? 'condos' : null].filter(Boolean) : [];
     const usable = pickable || (!early && open!==false && !x?.closed);
     cells.push(h('button',{class:cls.join(' '), disabled:!usable || null, 'aria-label':wmd(d)+(x?.closed ? ', closed' : open===false ? ', full' : ''), onclick:()=>tapDay(d)},
-      i, x?.closed ? h('small',{},'closed') : (!early && open===false) ? h('small',{},'full') : counts.map(t => h('small',{}, t))));
+      i, x?.closed ? h('small',{},'closed') : fullWhat.length ? [fullWhat.map(t => h('small',{}, t)), h('small',{}, 'full')] : null));
   }
   return [h('div',{class:'mh'},
       h('button',{'aria-label':'Previous month', disabled:base <= minMonth || null, onclick:()=>go(-1)}, '‹'),
@@ -314,23 +328,45 @@ function monthCal(){
       h('span',{}, h('span',{class:'sw', style:'background:var(--card);border:1px solid var(--field)'}), 'Open'),
       h('span',{}, h('span',{class:'sw', style:'background:var(--off)'}), 'Full or not bookable'),
       h('span',{}, h('span',{class:'sw', style:'background:repeating-linear-gradient(135deg,var(--field),var(--field) 3px,transparent 3px,transparent 6px)'}), 'Closed')),
-    h('p',{class:'mut', style:'margin:8px 0 0;font-size:13px'}, 'The small numbers are how many '+[need().d && 'dog kennels', need().c && 'cat condos'].filter(Boolean).join(' and ')+' are still open that night.')];
+    h('p',{class:'mut', style:'margin:8px 0 0;font-size:13px'}, 'Dogs stay in kennels and cats in condos. A day that says full has no room for your pets that night.')];
 }
 const loading = {};
 
 // the posted drop-off and pickup times for that day, in half hours, plus "another time"
-function timePick(day, k, otherK, label){
-  const w = INFO.hours?.[parseD(day).getDay()] || [];
-  const slots = []; w.forEach(([a,b]) => { for(let m = toMin(a); m <= toMin(b); m += 30) slots.push(fromMin(m)); });
-  const fee = INFO.fee ? ' ($'+INFO.fee+' fee)' : '';
-  const eve = t => k==='pick' && !F.ownFood && INFO.eveFee && INFO.eveFrom && t >= INFO.eveFrom;
-  const set = v => { F[k] = v; draw(); };
-  const other = [...Array(29)].map((_, i) => fromMin(7*60 + i*30)).filter(t => !slots.includes(t));   // 7 AM to 9 PM
-  return h('div',{class:'f'}, h('span',{class:'lbl'}, label+', '+wmd(day)),
-    h('div',{class:'chips'}, slots.map(t => h('button',{class:'chip'+(F[k]===t ? ' on' : ''), onclick:()=>{ F[otherK] = false; set(t); }}, t12(t)+(eve(t) ? '  +$'+INFO.eveFee : ''))),
-      h('button',{class:'chip'+(F[otherK] ? ' on' : ''), onclick:()=>{ F[otherK] = !F[otherK]; if(!F[otherK] && !slots.includes(F[k])) F[k] = ''; draw(); }}, slots.length ? 'Another time'+fee : 'Pick a time'+fee)),
-    F[otherK] && h('div',{class:'chips', style:'margin-top:8px'}, other.map(t => h('button',{class:'chip'+(F[k]===t ? ' on' : ''), onclick:()=>set(t)}, t12(t)))));
+// one time field per day; the list marks what costs extra, and a note says why
+const inHours = (day, t) => (INFO.hours?.[parseD(day).getDay()] || []).some(([a, b]) => a <= t && t <= b);
+const eveTime = (k, t) => k==='pick' && !F.ownFood && INFO.eveFee && INFO.eveFrom && t >= INFO.eveFrom;
+const timeFee = (day, k, t) => !t ? 0 : !inHours(day, t) ? (INFO.fee || 0) : eveTime(k, t) ? INFO.eveFee : 0;
+function timeNote(day, k){
+  const t = F[k]; if(!t) return null;
+  if(!inHours(day, t)) return INFO.fee ? h('p',{class:'tnote'}, h('b',{}, '+$'+INFO.fee+'.'), ' That’s outside our drop-off and pickup hours.') : null;
+  if(eveTime(k, t)) return h('p',{class:'tnote'}, h('b',{}, '+$'+INFO.eveFee+'.'), ' Pickup during evening hours covers their evening meal. No charge if you bring their food.');
+  return null;
 }
+function timePick(day, k, label){
+  const t = F[k];
+  return h('div',{class:'f'}, h('span',{class:'lbl'}, label+', '+wmd(day)),
+    h('button',{class:'tbtn'+(t ? '' : ' empty'), onclick:()=>{ PICK = {day, k, label}; draw(); }},
+      h('span',{}, t ? t12(t) : 'Pick a time'), h('span',{class:'mut'}, '▾')),
+    timeNote(day, k));
+}
+// the time list: her hours first, then the other times with their fee
+function timeSheet(){
+  if(!PICK) return null;
+  const {day, k, label} = PICK, all = [...Array(31)].map((_, i) => fromMin(6*60 + i*30));   // 6 AM to 9 PM
+  const open = all.filter(t => inHours(day, t)), other = all.filter(t => !inHours(day, t));
+  const row = t => { const f = timeFee(day, k, t);
+    return h('button',{class:'trow'+(F[k]===t ? ' on' : ''), onclick:()=>{ F[k] = t; PICK = null; draw(); }},
+      h('span',{}, t12(t)), f ? h('span',{class:'tfee'}, '+$'+f) : h('span',{}, '')); };
+  const close = () => { PICK = null; draw(); };
+  return h('div',{class:'tov', onclick:e=>{ if(e.target===e.currentTarget) close(); }},
+    h('div',{class:'tsh', role:'dialog', 'aria-label':label+' time'},
+      h('div',{class:'row', style:'padding:14px 16px 6px'}, h('b',{style:'font-size:18px'}, label+' · '+wmd(day)), h('button',{class:'lk', onclick:close}, 'Close')),
+      h('div',{class:'tlist'},
+        open.length ? [h('div',{class:'tgrp'}, 'Our hours'), open.map(row)] : h('div',{class:'tgrp'}, 'No drop-off or pickup hours this day'),
+        other.length > 0 && [h('div',{class:'tgrp'}, 'Other times'), other.map(row)])));
+}
+let PICK = null;
 
 function input(k, label, a = {}){
   return h('label',{class:'f'}, h('span',{class:'lbl'}, label),
@@ -386,17 +422,13 @@ function formView(){
       F.end && h('div',{class:'mut'}, plural(nights,'night')),
       F.end && (!CHECK ? h('p',{class:'mut', style:'margin:8px 0 0'}, 'Checking…')
         : !CHECK.ok ? h('div',{class:'warn'}, CHECK.reason)
-        : enough ? h('div',{class:'ok'}, h('div',{}, 'Open those dates: ', h('b',{}, room)), want && h('div',{class:'mut', style:'margin-top:2px'}, 'You need '+want+'.'))
+        : enough ? h('div',{class:'ok'}, h('b',{}, 'Good news, there’s room those dates.'), want && h('div',{class:'mut', style:'margin-top:2px'}, 'You’ll need '+want+'.'))
         : h('div',{class:'warn'}, 'Not enough room for those dates'+(want ? ' (you need '+want+')' : '')+'. Try other days.'))),
     ERR && !F.end && h('div',{class:'err'}, ERR),
     enough && [
       h('h2',{}, '3. Times'),
-      (INFO.eveFee || INFO.fee) ? h('div',{class:'fees'},
-        INFO.eveFee && INFO.eveFrom ? h('div',{}, h('b',{}, 'Pickup during evening hours ('+t12(INFO.eveFrom).replace(':00','')+' or later): +$'+INFO.eveFee+'.'),
-          F.ownFood ? ' That’s for their evening meal, so it doesn’t apply since you’re bringing food.' : ' That’s for their evening meal. No charge if you bring their food.') : null,
-        INFO.fee ? h('div',{}, h('b',{}, 'Drop-off or pickup before or after hours: +$'+INFO.fee+'.')) : null) : null,
-      timePick(F.start, 'arr', 'otherArr', 'Drop-off'),
-      timePick(F.end, 'pick', 'otherPick', 'Pickup'),
+      timePick(F.start, 'arr', 'Drop-off'),
+      timePick(F.end, 'pick', 'Pickup'),
       estimateCard(),
       h('h2',{}, '4. About you'),
       input('name','Your name',{ac:'name', max:80}),
@@ -467,7 +499,7 @@ async function refresh(){
 function draw(){
   const app = document.getElementById('app');
   const y = scrollY, a = document.activeElement, focusId = a && a.closest('label') ? [...app.querySelectorAll('input,textarea')].indexOf(a) : -1;
-  app.replaceChildren(...[TOKEN ? statusView() : DONE ? doneView() : INFO ? formView() : [header('Request a stay'), h(ERR ? 'div' : 'p', {class:ERR ? 'err' : 'mut'}, ERR || 'Loading…')]].flat(Infinity).filter(Boolean));
+  app.replaceChildren(...[TOKEN ? statusView() : DONE ? doneView() : INFO ? [formView(), timeSheet()] : [header('Request a stay'), h(ERR ? 'div' : 'p', {class:ERR ? 'err' : 'mut'}, ERR || 'Loading…')]].flat(Infinity).filter(Boolean));
   if(focusId >= 0) app.querySelectorAll('input,textarea')[focusId]?.focus();
   scrollTo(0, y);
 }
