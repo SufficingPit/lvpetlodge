@@ -74,8 +74,7 @@ function guestPaper(d, base, opts){
       +'<div class="gp-vetrow">'+sub('Veterinarian')+'<div class="gp-fl2">'+ln('Name:', 'owner.vet')+ln('Phone:', 'owner.vetPhone', 'tel', 'gp-vph')+'</div></div>'
       +band('Pick Up &amp; Belongings', 'gp-h-sm', 8)
       +ln('My pet may be picked up and released to:', 'owner.pickupBy')
-      +multi('Items you brought along with you for this stay:', 'items', 2)
-      +'<div class="gp-famart">'+img('whitedog')+img('redcat')+img('puppy', 'fpup')+'</div>'
+      +multi('Items you brought along with you for this stay:', 'items', 3)
       +'<div class="gp-foot">'+paw('#1f6fb5','.3in')+'<b>Pet pages next &#8594;</b></div>'
       +'</div></section>';
   }
@@ -208,19 +207,19 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-ttl{flex:1;display:flex;flex-direction:column;align-items:center;gap:.03in}
 .gp-welcome{font:22pt/1 "Alfa Slab One",Rockwell,serif;color:#f39200;letter-spacing:.03em}
 .gp-lodge{font:31pt/1.05 Caladea,Cambria,Georgia,serif;color:#1f4db5;white-space:nowrap}
-.gp-intro{font-size:9pt;margin:0 .1in .04in!important;line-height:1.35}
+.gp-intro{font-size:9.5pt;margin:.04in .1in .08in!important;line-height:1.4}
 .gp-h-reg{white-space:nowrap;font:16pt/1 Cinzel,"Times New Roman",serif;letter-spacing:.06em;color:#333}
 .gp-h-sm{white-space:nowrap;font:16pt/1 Questrial,"Century Gothic",sans-serif;color:#222}
-.gp-reg{display:flex;gap:.35in;padding:0 .05in;font-size:11pt}
+.gp-reg{display:flex;gap:.35in;padding:.04in .05in 0;font-size:11.5pt}
 .gp-own{flex:1.45}.gp-addr{flex:1}
-.gp-reg .gp-fl{margin-bottom:.13in}
-.gp-fam .gp-band{margin:.16in 0 .12in}
-.gp-contacts{display:flex;gap:.35in;padding:.1in .05in 0;font-size:10.5pt}
-.gp-contacts .gp-fl,.gp-vetrow .gp-fl{margin-bottom:.1in}
-.gp-vetrow{padding:.1in .05in 0;font-size:10.5pt}
+.gp-reg .gp-fl{margin-bottom:.25in}
+.gp-fam .gp-band{margin:.3in 0 .2in}
+.gp-contacts{display:flex;gap:.35in;padding:.14in .05in 0;font-size:11pt}
+.gp-contacts .gp-fl,.gp-vetrow .gp-fl{margin-bottom:.21in}
+.gp-vetrow{padding:.14in .05in 0;font-size:11pt}
 .gp-vph{flex:0 0 2.4in!important}
-.gp-fam .gp-multi,.gp-fam .gp-frame>.gp-fl{font-size:10.5pt;margin-left:.05in;margin-right:.05in}
-.gp-fam .gp-frame>.gp-fl{margin-bottom:.12in}
+.gp-fam .gp-multi,.gp-fam .gp-frame>.gp-fl{font-size:11pt;margin-left:.05in;margin-right:.05in}
+.gp-fam .gp-frame>.gp-fl{margin-bottom:.24in}
 .gp-famart{display:flex;justify-content:center;align-items:flex-end;gap:.6in;margin-top:.3in}
 .gp-famart img{height:1.2in;width:1.1in}
 .gp-famart .gp-fpup{width:1.35in;height:1in}
