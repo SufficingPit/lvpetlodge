@@ -87,6 +87,9 @@ body{overflow-x:clip}
 .petbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 auto 10px;width:7.4in;max-width:100%;padding:calc(10px / var(--k,1)) calc(14px / var(--k,1)) 0}
 .petbar b{font-size:calc(20px / var(--k,1))}
 .petbar .lk{font-size:calc(16px / var(--k,1));min-height:calc(40px / var(--k,1))}
+.petbar .pbtns{display:flex;align-items:center;gap:calc(14px / var(--k,1))}
+.petbar .clr{display:inline-flex;align-items:center;gap:calc(5px / var(--k,1))}
+.b.bad{background:var(--bad);color:var(--card)}
 .addpet{display:block;width:calc(7.4in - 28px / var(--k,1));max-width:100%;margin:0 auto 18px;min-height:calc(52px / var(--k,1));font-size:calc(17px / var(--k,1));border-radius:calc(12px / var(--k,1))}
 .tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 .tsh{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
@@ -140,13 +143,14 @@ let F = {items:'', owner:{first:'', last:'', email:'', cell:'', main:'', work:''
   emName:'', emMain:'', emAlt:'', vet:'', vetPhone:'', pickupBy:''}, pets:[newPet()], agree:false, sign:{name:'', img:'', date:''}, key:uuid()};
 try { const d = JSON.parse(localStorage.getItem(DRAFT)); if(d && d.owner && d.pets) F = {...F, ...d, owner:{...F.owner, ...d.owner}, pets:d.pets.map(p => ({...newPet(), ...p}))}; } catch(e) {}
 // fill in what they told the request page, if this is the first time here
-if(!F.owner.first){ try { const m = JSON.parse(localStorage.getItem('lvpl-mine')); const me = m && m.me;
+let hadDraft = false; try { hadDraft = !!localStorage.getItem(DRAFT); } catch(e) {}
+if(!hadDraft && !F.owner.first){ try { const m = JSON.parse(localStorage.getItem('lvpl-mine')); const me = m && m.me;
   if(me){ const parts = (me.name||'').trim().split(/\s+/); F.owner.first = parts[0] || ''; F.owner.last = parts.slice(1).join(' '); F.owner.cell = me.phone || ''; F.owner.email = me.email || '';
     if(me.pets && me.pets.length && !F.pets.some(p => p.name)) F.pets = me.pets.map(p => ({...newPet(), species:p.species, name:p.name || '', breed:p.breed || '', other:p.kind || '', conditions:p.note || '',
       meds:p.medsOn && p.meds ? [{name:p.meds, dose:'', freq:'', instr:''}] : []})); } } catch(e) {} }
 let saveT = null;
 const saveDraft = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(DRAFT, JSON.stringify(F)); } catch(e) {} }, 300); };
-let ERR = '', SENDING = false, DONE = false, SIGNING = false;
+let ERR = '', SENDING = false, DONE = false, SIGNING = false, ASK = null;   // ASK: {title, msg, ok, go} for the are-you-sure sheet
 // the paper form is the default on bigger screens; on a phone the simple form is easier to type into
 // The simple (card-by-card) form is switched off for now; simpleView() is kept so it can come back.
 let VIEW = 'paper';
@@ -261,15 +265,17 @@ const WAIVER = [
 
 function formView(){
   return [h('h1',{}, 'New guest form'),
-    h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off. Want it on paper? ', h('a',{href:'new-form-line-art.pdf', target:'_blank', rel:'noopener'}, 'Print a blank one'), '.'),
+    h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off.'),
     h('p',{class:'mut', style:'font-size:13px'}, 'Tap a line to write on it and a box to tick it.'),
     VIEW==='paper' ? paperView() : simpleView(),
     ERR && h('div',{class:'err', id:'err'}, ERR),
     h('button',{class:'b', style:'margin-top:16px', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send to Little Village'),
     h('button',{type:'button', class:'b2', style:'width:100%;margin-top:10px', onclick:printIt}, 'Print or save as PDF'),
-    h('p',{class:'mut', style:'margin-top:12px;font-size:13px'}, 'Your answers are kept on this device until you send them.'),
-    h('p',{class:'mut', style:'margin-top:18px;font-size:11px'}, 'Siamese kitten art: Phantom Open Emoji, CC BY 3.0.'),
-    SIGNING && signSheet()];
+    h('p',{class:'mut', style:'margin-top:12px;font-size:13px'}, 'Prefer paper? Print it filled in, or leave it empty for a blank one. Add pets first to get a page for each.'),
+    h('p',{class:'mut', style:'font-size:13px'}, 'Your answers are saved on this device, so you can come back and finish later.'),
+    h('button',{type:'button', class:'lk bad', style:'margin-top:4px', onclick:()=>ask('Clear the whole form?', 'Every answer, every pet and the signature are erased. This can’t be undone.', 'Clear form', clearAll)}, 'Clear form'),
+    SIGNING && signSheet(),
+    ASK && askSheet()];
 }
 function simpleView(){
   const O = F.owner;
@@ -336,11 +342,17 @@ function paperView(){
   addPaperStyles();
   const sheets = h('div',{class:'sheets'}), wrap = h('div',{class:'sheetwrap'}, sheets);
   sheets.innerHTML = guestPaper(paperData(), '', {edit:true, lineart:true});
-  // a name and Remove above each pet's pages, and room for another pet after the last
+  // a bar above each page: what it is, and a button to clear just that page
+  const fam = sheets.querySelector('.gp-fam'), wv = sheets.querySelector('.gp-waiver');
+  fam.before(h('div',{class:'petbar'}, h('b',{}, 'Your family'), clearBtn('Clear the family page?', 'Your name, contacts, vet and pick-up answers are erased.', clearFamily)));
+  wv.before(h('div',{class:'petbar'}, h('b',{}, 'Waiver'), clearBtn('Clear the waiver?', 'The tick, signature and printed name are erased.', clearWaiver)));
+  // a name, Clear and Remove above each pet's page, and room for another pet after the last
   sheets.querySelectorAll('.gp-petpages').forEach((pp, i) => {
-    const p = F.pets[i];
-    pp.prepend(h('div',{class:'petbar'}, h('b',{}, F.pets.length > 1 ? 'Pet '+(i+1)+(p.name.trim() ? ': '+p.name.trim() : '') : (p.name.trim() || 'Your pet')),
-      F.pets.length > 1 && h('button',{type:'button', class:'lk bad', onclick:()=>{ F.pets.splice(i, 1); saveDraft(); draw(); }}, 'Remove this pet')));
+    const p = F.pets[i], nm = p.name.trim();
+    pp.prepend(h('div',{class:'petbar'}, h('b',{}, F.pets.length > 1 ? 'Pet '+(i+1)+(nm ? ': '+nm : '') : (nm || 'Your pet')),
+      h('span',{class:'pbtns'},
+        clearBtn('Clear '+(nm ? nm+'’s' : 'this pet’s')+' page?', 'Every answer on this pet’s page is erased.', () => { F.pets[i] = newPet(); }),
+        F.pets.length > 1 && h('button',{type:'button', class:'lk bad', onclick:()=>ask('Remove '+(nm || 'this pet')+'?', 'This pet’s page and its answers are taken off the form.', 'Remove', () => { F.pets.splice(i, 1); })}, 'Remove pet'))));
     if(i===F.pets.length-1 && F.pets.length < 8) pp.after(h('button',{type:'button', class:'b2 addpet', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet'));
   });
   sheets.oninput = e => {
@@ -375,6 +387,28 @@ function paperView(){
   setTimeout(fit, 0); document.fonts.ready.then(fit);
   return wrap;
 }
+// a small trash-can button that clears one page, after an are-you-sure
+const TRASH = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>';
+function clearBtn(title, msg, go){
+  const b = h('button',{type:'button', class:'lk bad clr', onclick:()=>ask(title, msg+' This can’t be undone.', 'Clear', go)});
+  b.innerHTML = TRASH+'<span>Clear page</span>'; return b;
+}
+function ask(title, msg, ok, go){ ASK = {title, msg, ok, go}; draw(); }
+function askSheet(){
+  const close = () => { ASK = null; draw(); };
+  return h('div',{class:'tov', onclick:e=>{ if(e.target===e.currentTarget) close(); }},
+    h('div',{class:'tsh', role:'alertdialog', 'aria-label':ASK.title},
+      h('b',{style:'font-size:18px;display:block;margin-bottom:6px'}, ASK.title),
+      h('p',{class:'mut', style:'margin:0 0 14px'}, ASK.msg),
+      h('button',{type:'button', class:'b bad', onclick:()=>{ const go = ASK.go; ASK = null; go(); saveDraft(); draw(); }}, ASK.ok),
+      h('button',{type:'button', class:'b2', style:'width:100%;margin-top:8px', onclick:close}, 'Cancel')));
+}
+const blankOwner = () => ({first:'', last:'', email:'', cell:'', main:'', work:'', city:'', state:'NE', zip:'', coName:'', coMain:'', coAlt:'',
+  emName:'', emMain:'', emAlt:'', vet:'', vetPhone:'', pickupBy:''});
+function clearFamily(){ F.owner = blankOwner(); F.items = ''; }
+function clearWaiver(){ F.agree = false; F.sign = {name:'', img:'', date:''}; }
+function clearAll(){ clearFamily(); clearWaiver(); F.pets = [newPet()]; F.key = uuid(); ERR = ''; scrollTo(0, 0); }
+
 function signSheet(){
   const close = () => { SIGNING = false; draw(); };
   return h('div',{class:'tov', onclick:e=>{ if(e.target===e.currentTarget) close(); }},
@@ -411,7 +445,11 @@ function addPaperStyles(){
   if(fontsAdded) return; fontsAdded = true;
   document.head.append(h('link',{rel:'stylesheet', href:GUEST_FONTS}), h('style',{}, guestPaperCSS));
 }
-function paperData(){ const d = F.sign.date || todayYmd(); return {...F, date:d, sign:{...F.sign, date:d}}; }
+function paperData(){
+  const empty = {items:'', owner:{...blankOwner(), state:''}, pets:F.pets.map(newPet), agree:false, sign:{name:'', img:'', date:''}};
+  const used = JSON.stringify({items:F.items, owner:{...F.owner, state:''}, pets:F.pets, agree:F.agree, sign:F.sign}) !== JSON.stringify(empty);
+  const d = F.sign.date || (used ? todayYmd() : '');   // a form left empty prints blank, date and all
+  return {...F, date:d, sign:{...F.sign, date:d}}; }
 async function printIt(){
   addPaperStyles();
   const paper = document.getElementById('paper');
