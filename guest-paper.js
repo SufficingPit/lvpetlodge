@@ -140,7 +140,7 @@ function guestPaper(d, base, opts){
       +'<p class="gp-in1">Little Village Pet Lodge cares about every pet! We will do everything possible to make their stay with us a happy, safe, and well cared for time. Pet owner specifically represents to kennel that pet has not been exposed to any contagious diseases within the last 30 days and that all vaccinations are up to date. It is understood that any animal found to be harboring any type of external parasite will be treated accordingly at the expense of the pet owner.</p>'
       +'<p class="gp-in1">Pet owner agrees to pay rate for boarding in effect on the date pet is checked into kennel plus any extra fees incurred. Pet owner further agrees to pay all costs and charges for our services before pet is released. ANY ANIMAL LEFT FOR 10 DAYS AFTER SCHEDULED PICK UP DATE, WITHOUT NOTIFICATION TO KENNEL, IS DEEMED ABANDONED AND WILL BE SUBJECT TO DISPOSAL AT LITTLE VILLAGE PET LODGE’S DISCRETION.</p>'
       +'<p class="gp-in1">Little Village Pet Lodge will exercise reasonable care for all pets. If the occasion should arise that pet becomes ill, or the state of animal’s health otherwise requires professional attention, Kennel will contact</p>'
-      +'<div class="gp-vet"><p>NORTH PARK ANIMAL HOSPITAL<br>1625 BURLINGTON ST<br>HOLDREGE, NE 68949<br>(308) 995-2419</p>'+img('wpup', 'vp')+img('wgrey', 'vc')+'</div>'
+      +'<div class="gp-vet"><p>NORTH PARK ANIMAL HOSPITAL<br>1625 BURLINGTON ST<br>HOLDREGE, NE 68949<br>(308) 995-2419</p></div>'
       +'<p>All fees for emergency call to North Park Veterinarian will be paid by Pet Owner before pet’s release.</p>'
       +'<p class="gp-in1">Liability of kennel shall in no event exceed the lesser of the current value of a pet of same species, or the sum of $300 per pet while it is in the care of the kennel. Furthermore, Little Village Pet Lodge is NOT responsible if there is an unfortunate event or death of pet after all attempts are made to keep your pet safe and healthy. We are dedicated to ensuring you with Peace of Mind, Educated with Knowledge, and have our Hearts filled with love for all Furbabies!</p>'
       +'<p class="gp-in1">If your pet is scheduled for a pick up or drop off by our kennel vehicle, kennel/driver shall not be held responsible for vehicle accidents, injuries, natural disasters, or death. Pet owner further agrees to be solely responsible for any and all acts or behavior of said pet while it is in the care of the kennel.</p>'
@@ -281,7 +281,7 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-in1{text-indent:.45in}
 .gp-vet{display:flex;align-items:center;gap:.4in;margin:.02in 0 .08in}
 .gp-vet p{margin:0!important}
-.gp-vp{width:.75in;height:.88in;margin-left:.5in}.gp-vc{width:.68in;height:.88in}
+
 .gp-ack{display:flex;align-items:flex-start;gap:.08in;margin-top:.04in}
 .gp-ack .gp-cb{margin:.03in 0 0}
 .gp-ack .gp-cb i{width:.16in;height:.16in}
