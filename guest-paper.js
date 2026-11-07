@@ -101,7 +101,7 @@ function guestPaper(d, base, opts){
       +'</div></div>'
       +band('Medication', 'gp-h-med', 9)
       +'<div class="gp-medbox">'
-        +'<div class="gp-cond">'+multi('Allergies or medical conditions you should know about:', P+'conditions', 2)+img('corgipup', 'cpup')+'</div>'
+        +'<div class="gp-cond">'+multi('Allergies or medical conditions you should know about:', P+'conditions', 2)+img(ART==='lineart/' ? 'bulldog' : 'corgipup', 'cpup')+'</div>'
         +'<div class="gp-medh">I need to get the following medication(s):</div>'
         +'<div class="gp-meds">'+meds+'</div>'
       +'</div>'
@@ -126,7 +126,7 @@ function guestPaper(d, base, opts){
           +'<div class="gp-fl gp-beh"><span class="gp-bq">I have been known to bite:</span>'+yn(P+'bites')+'</div>'
           +'<div class="gp-fl gp-beh"><span class="gp-bq">I have been known to start a fight:</span>'+yn(P+'fights')+'</div>'
           +'<div class="gp-fl gp-beh"><span class="gp-bq">I eat or chew up beds:</span>'+yn(P+'chews')+'</div>'
-          +'<div class="gp-behart">'+img('bulldog')+img('cat2')+'</div>'
+          +'<div class="gp-behart'+(ART==='lineart/' ? ' gp-behart1' : '')+'">'+(ART==='lineart/' ? '' : img('bulldog'))+img('cat2')+'</div>'
         +'</div>'
         +'<p class="gp-bednote">If a bed is provided by L.V. Pet Lodge and I chew it up, my parents will be charged $10 to help replace the bed.</p>'
       +'</div>'
@@ -267,6 +267,7 @@ textarea.gp-ta:focus{background-color:rgba(60,110,255,.1)}
 .gp-bq{width:3.1in;flex:none}
 .gp-behart{position:absolute;right:0;top:.02in;display:flex;gap:.08in}
 .gp-behart img{height:.75in;width:.75in}
+.gp-behart1{width:1.58in;justify-content:center}.gp-behart1 img{width:1.1in}
 .gp-bednote{font:700 9pt/1.3 Arimo,Arial,sans-serif;margin-top:.04in!important}
 .gp-petfoot{justify-content:flex-end;gap:.15in}
 /* the waiver */
