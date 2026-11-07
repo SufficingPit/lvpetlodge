@@ -73,6 +73,20 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 #tsbox{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;background:var(--card);border-radius:14px;padding:14px;box-shadow:0 6px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
 #paper{display:none}
+.views{display:flex;border:1px solid var(--field);border-radius:12px;overflow:hidden;background:var(--card);margin:16px 0 6px}
+.views button{flex:1;min-height:46px;border:0;background:none;font-weight:700;color:var(--mut)}
+.views button+button{border-left:1px solid var(--field)}
+.views .on{background:var(--pri);color:var(--onp)}
+body.wide #app{max-width:880px}
+.sheetwrap{margin:10px -16px 0;overflow:hidden}
+.sheets{transform-origin:top left}
+.petbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 auto 10px;width:8.5in;max-width:100%;padding:10px 4px 0}
+.petbar b{font-size:calc(20px / var(--k,1))}
+.petbar .lk{font-size:calc(16px / var(--k,1));min-height:calc(40px / var(--k,1))}
+.addpet{display:block;width:8.5in;max-width:100%;margin:0 auto 18px;min-height:calc(52px / var(--k,1));font-size:calc(17px / var(--k,1));border-radius:calc(12px / var(--k,1))}
+.tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.tsh{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+@media(min-width:660px){.tov{align-items:center}.tsh{border-radius:18px}}
 body.blank{background:#888}
 body.blank .tb,body.blank #app{display:none}
 body.blank #paper{display:block;padding:20px 0}
@@ -116,7 +130,7 @@ const uuid = () => crypto.randomUUID ? crypto.randomUUID() : null;
 const newPet = () => ({species:'dog', other:'', name:'', breed:'', color:'', dob:'', sex:'', fixed:'', conditions:'', meds:[],
   diet:'', food:'', perDay:'', dietNotes:'', treats:'', treatFav:'', personality:[], alsoKnow:'', along:[], notes:'',
   jumps:'', bites:'', fights:'', likes:'', dislikes:'', chews:''});
-let F = {owner:{first:'', last:'', email:'', cell:'', main:'', work:'', city:'', state:'NE', zip:'', coName:'', coMain:'', coAlt:'',
+let F = {items:'', owner:{first:'', last:'', email:'', cell:'', main:'', work:'', city:'', state:'NE', zip:'', coName:'', coMain:'', coAlt:'',
   emName:'', emMain:'', emAlt:'', vet:'', vetPhone:'', pickupBy:''}, pets:[newPet()], agree:false, sign:{name:'', img:'', date:''}, key:uuid()};
 try { const d = JSON.parse(localStorage.getItem(DRAFT)); if(d && d.owner && d.pets) F = {...F, ...d, owner:{...F.owner, ...d.owner}, pets:d.pets.map(p => ({...newPet(), ...p}))}; } catch(e) {}
 // fill in what they told the request page, if this is the first time here
@@ -126,7 +140,10 @@ if(!F.owner.first){ try { const m = JSON.parse(localStorage.getItem('lvpl-mine')
       meds:p.medsOn && p.meds ? [{name:p.meds, dose:'', freq:'', instr:''}] : []})); } } catch(e) {} }
 let saveT = null;
 const saveDraft = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(DRAFT, JSON.stringify(F)); } catch(e) {} }, 300); };
-let ERR = '', SENDING = false, DONE = false;
+let ERR = '', SENDING = false, DONE = false, SIGNING = false;
+// the paper form is the default on bigger screens; on a phone the simple form is easier to type into
+let VIEW = (() => { try { const v = localStorage.getItem('lvpl-guest-view'); if(v==='paper' || v==='simple') return v; } catch(e) {} return innerWidth >= 760 ? 'paper' : 'simple'; })();
+const setView = v => { VIEW = v; try { localStorage.setItem('lvpl-guest-view', v); } catch(e) {} draw(); scrollTo(0, 0); };
 
 /* ---------- inputs ---------- */
 function tf(obj, k, label, a = {}){
@@ -236,11 +253,21 @@ const WAIVER = [
   'Note pick up and drop off times! Extra charge of $10.00 if necessary.'];
 
 function formView(){
-  const O = F.owner;
   return [h('h1',{}, 'New guest form'),
-    h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off. You can also print it.'),
-    h('div',{class:'top-acts'}, h('a',{class:'b2', href:'new-guest-forms.pdf', target:'_blank', rel:'noopener'}, 'Print a blank form (PDF)')),
-
+    h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off. Want it on paper? ', h('a',{href:'new-guest-forms.pdf', target:'_blank', rel:'noopener'}, 'Print a blank one'), '.'),
+    h('div',{class:'views', role:'group', 'aria-label':'How to fill it out'},
+      [['paper','Paper form'],['simple','Simple form']].map(([v, l]) => h('button',{type:'button', class:VIEW===v ? 'on' : '', 'aria-pressed':VIEW===v ? 'true' : 'false', onclick:()=>{ if(VIEW!==v) setView(v); }}, l))),
+    h('p',{class:'mut', style:'font-size:13px'}, VIEW==='paper' ? 'Tap a line to write on it and a box to tick it. Switch to the simple form anytime; your answers carry over.' : 'Same questions as the paper form, one at a time. Switch back anytime; your answers carry over.'),
+    VIEW==='paper' ? paperView() : simpleView(),
+    ERR && h('div',{class:'err', id:'err'}, ERR),
+    h('button',{class:'b', style:'margin-top:16px', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send to Little Village'),
+    h('button',{type:'button', class:'b2', style:'width:100%;margin-top:10px', onclick:printIt}, 'Print or save as PDF'),
+    h('p',{class:'mut', style:'margin-top:12px;font-size:13px'}, 'Your answers are kept on this device until you send them.'),
+    SIGNING && signSheet()];
+}
+function simpleView(){
+  const O = F.owner;
+  return [
     h('h2',{}, '1. About you'),
     h('div',{class:'card'},
       h('div',{class:'two'}, tf(O, 'first', 'First name', {ac:'given-name', max:40}), tf(O, 'last', 'Last name', {ac:'family-name', max:40})),
@@ -260,6 +287,7 @@ function formView(){
     h('h2',{}, '3. Your pets'),
     F.pets.map(petCard),
     F.pets.length < 8 && h('button',{type:'button', class:'b2', style:'width:100%', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet'),
+    h('div',{class:'card', style:'margin-top:12px'}, tf(F, 'items', 'Items you’ll bring along for their stay (optional)', {area:true, max:300, ph:'e.g. Bed, leash, food bag'})),
 
     h('h2',{}, '4. Waiver'),
     h('div',{class:'card'},
@@ -270,12 +298,87 @@ function formView(){
       tf(F.sign, 'name', 'Type your full name', {ac:'name', max:80}),
       h('div',{class:'row', style:'margin-bottom:5px'}, h('span',{class:'lbl', style:'margin:0'}, 'Sign with your finger or mouse'),
         F.sign.img && h('button',{type:'button', class:'lk', style:'min-height:28px;padding:0 4px', onclick:()=>PAD.clear()}, 'Clear')),
-      sigPad()),
+      sigPad())];
+}
 
-    ERR && h('div',{class:'err', id:'err'}, ERR),
-    h('button',{class:'b', style:'margin-top:16px', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send to Little Village'),
-    h('button',{type:'button', class:'b2', style:'width:100%;margin-top:10px', onclick:printIt}, 'Print or save as PDF'),
-    h('p',{class:'mut', style:'margin-top:12px;font-size:13px'}, 'Your answers are kept on this device until you send them.')];
+/* ---------- the paper form, filled in right on the page ---------- */
+const getK = (o, k) => k.split('.').reduce((a, x) => a == null ? undefined : a[x], o);
+function setK(o, k, v){
+  const ks = k.split('.'); let a = o;
+  ks.slice(0, -1).forEach((x, i) => {
+    if(a[x] == null){ const next = ks[i+1]; a[x] = /^\d+$/.test(next) ? [] : {}; }
+    // a medicine slot on the paper that's further down than the list: fill the gap
+    if(Array.isArray(a[x]) && /^\d+$/.test(ks[i+1])) while(a[x].length <= +ks[i+1]) a[x].push(x==='meds' ? {name:'', dose:'', freq:'', instr:''} : {});
+    a = a[x];
+  });
+  a[ks[ks.length-1]] = v;
+}
+function tickBox(b){
+  const k = b.dataset.k, v = b.dataset.v, t = b.dataset.t;
+  if(t==='one') setK(F, k, getK(F, k)===v ? '' : v);
+  else if(t==='fixed'){ const pet = getK(F, k.replace(/\.fixed$/, ''));
+    if(pet.sex===v && pet.fixed==='yes') pet.fixed = ''; else { pet.sex = v; pet.fixed = 'yes'; } }
+  else { const list = getK(F, k) || []; setK(F, k, list);
+    const i = list.indexOf(v);
+    if(i >= 0) list.splice(i, 1);
+    else if(t==='pick') list.splice(0, list.length, v);
+    else { if(v==='Everyone') list.splice(0, list.length); else { const j = list.indexOf('Everyone'); if(j >= 0) list.splice(j, 1); } list.push(v); } }
+  saveDraft(); draw();
+}
+function paperView(){
+  addPaperStyles();
+  const sheets = h('div',{class:'sheets'}), wrap = h('div',{class:'sheetwrap'}, sheets);
+  sheets.innerHTML = guestPaper(paperData(), '', {edit:true});
+  // a name and Remove above each pet's pages, and room for another pet after the last
+  sheets.querySelectorAll('.gp-petpages').forEach((pp, i) => {
+    const p = F.pets[i];
+    pp.prepend(h('div',{class:'petbar'}, h('b',{}, F.pets.length > 1 ? 'Pet '+(i+1)+(p.name.trim() ? ': '+p.name.trim() : '') : (p.name.trim() || 'Your pet')),
+      F.pets.length > 1 && h('button',{type:'button', class:'lk bad', onclick:()=>{ F.pets.splice(i, 1); saveDraft(); draw(); }}, 'Remove this pet')));
+    if(i===F.pets.length-1 && F.pets.length < 8) pp.after(h('button',{type:'button', class:'b2 addpet', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet (two more pages)'));
+  });
+  sheets.oninput = e => {
+    const el = e.target, k = el.dataset && el.dataset.k; if(!k) return;
+    let v = el.value;
+    if(el.dataset.f==='date'){
+      let d = v.replace(/\D/g,'').slice(0,8);
+      const shown = d.length > 4 ? d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4) : d.length > 2 ? d.slice(0,2)+'/'+d.slice(2) : d;
+      if(e.inputType!=='deleteContentBackward') el.value = v = shown;
+      const m = /^(\d\d)\/(\d\d)\/(\d{4})$/.exec(v);
+      v = m && +m[1] >= 1 && +m[1] <= 12 && +m[2] >= 1 && +m[2] <= 31 ? m[3]+'-'+m[1]+'-'+m[2] : v;
+    }
+    setK(F, k, v);
+    // the owner's details are on every pet's first page: keep them all the same
+    sheets.querySelectorAll('[data-k="'+k+'"]').forEach(x => { if(x!==el) x.value = el.value; });
+    saveDraft();
+  };
+  sheets.onchange = e => { const el = e.target;
+    if(el.dataset && el.dataset.f==='tel'){ const v = fmtPhone(el.value); setK(F, el.dataset.k, v); sheets.querySelectorAll('[data-k="'+el.dataset.k+'"]').forEach(x => x.value = v); saveDraft(); }
+    if(el.dataset && /\.name$/.test(el.dataset.k || '') && /^pets\.\d+\.name$/.test(el.dataset.k)) draw(); };
+  sheets.onclick = e => {
+    const b = e.target.closest('.gp-cb'); if(b){ tickBox(b); return; }
+    if(e.target.closest('[data-sign]')){ SIGNING = true; draw(); }
+  };
+  // fit the 8.5-inch pages to the screen
+  const fit = () => { if(!wrap.isConnected) return;
+    guestPaperFit(sheets);
+    const k = Math.min(1, wrap.clientWidth / (8.5*96 + 8));
+    sheets.style.setProperty('--k', k); sheets.style.transform = 'scale('+k+')'; sheets.style.width = (100/k)+'%';
+    wrap.style.height = sheets.getBoundingClientRect().height+'px'; };
+  setTimeout(fit, 0); document.fonts.ready.then(fit);
+  return wrap;
+}
+function signSheet(){
+  const close = () => { SIGNING = false; draw(); };
+  return h('div',{class:'tov', onclick:e=>{ if(e.target===e.currentTarget) close(); }},
+    h('div',{class:'tsh', role:'dialog', 'aria-label':'Sign the waiver'},
+      h('div',{class:'row', style:'margin-bottom:6px'}, h('b',{style:'font-size:18px'}, 'Sign the waiver'), h('button',{type:'button', class:'lk', onclick:close}, 'Close')),
+      h('label',{class:'check'}, h('input',{type:'checkbox', checked:F.agree, onchange:e=>{ F.agree = e.target.checked; saveDraft(); }}),
+        h('span',{}, 'I acknowledge that the above information is correct and that I have read the above contract and agree as owner or representative of the animal to the foregoing terms.')),
+      tf(F.sign, 'name', 'Type your full name', {ac:'name', max:80}),
+      h('div',{class:'row', style:'margin-bottom:5px'}, h('span',{class:'lbl', style:'margin:0'}, 'Sign with your finger or mouse'),
+        F.sign.img && h('button',{type:'button', class:'lk', style:'min-height:28px;padding:0 4px', onclick:()=>PAD.clear()}, 'Clear')),
+      sigPad(),
+      h('button',{type:'button', class:'b', style:'margin-top:14px', onclick:close}, 'Done')));
 }
 function doneView(){
   return [h('h1',{}, 'Form sent'),
@@ -287,10 +390,11 @@ function doneView(){
 }
 
 function draw(){
+  document.body.classList.toggle('wide', !DONE && VIEW==='paper');
   const app = document.getElementById('app');
   const y = scrollY, a = document.activeElement, all = () => [...app.querySelectorAll('input,textarea')], fi = a ? all().indexOf(a) : -1;
   app.replaceChildren(...[DONE ? doneView() : formView()].flat(Infinity).filter(Boolean));
-  if(fi >= 0) all()[fi]?.focus();
+  if(fi >= 0) all()[fi]?.focus({preventScroll:true});
   scrollTo(0, y);
 }
 
@@ -306,6 +410,7 @@ async function printIt(){
   const paper = document.getElementById('paper');
   paper.innerHTML = guestPaper(paperData(), '');
   await document.fonts.ready.catch(() => {});
+  guestPaperFit(paper);
   await Promise.all([...paper.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
   window.print();
 }
@@ -331,9 +436,10 @@ function problem(){
   if(!ph(O.cell) && !ph(O.main)) return 'Enter a phone number with area code in step 1.';
   const n = F.pets.findIndex(p => !p.name.trim() || (p.species==='other' && !p.other.trim()));
   if(n >= 0) return 'Enter a name (and kind, for small mammals) for each pet in step 3.';
-  if(!F.agree) return 'Check the box to agree to the waiver.';
-  if(F.sign.name.trim().length < 2) return 'Type your full name under the waiver.';
-  if(!F.sign.img) return 'Sign the waiver in the box.';
+  const where = VIEW==='paper' ? ' (tap SIGN on the last page)' : '';
+  if(!F.agree) return 'Check the box to agree to the waiver'+where+'.';
+  if(F.sign.name.trim().length < 2) return 'Type your full name for the waiver'+where+'.';
+  if(!F.sign.img) return 'Sign the waiver'+(where || ' in the box')+'.';
   return '';
 }
 async function send(){
@@ -343,7 +449,8 @@ async function send(){
   try {
     const token = await humanCheck();
     F.sign.date = todayYmd();
-    const data = {...paperData(), key:undefined, agree:true};
+    const data = {...paperData(), key:undefined, agree:true,
+      pets:F.pets.map(p => ({...p, meds:(p.meds || []).filter(m => [m.name, m.dose, m.freq, m.instr].some(x => (x || '').trim()))}))};
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, kind:'form', p:{key:F.key, data}})});
     const r = await res.json().catch(() => ({ok:false, reason:'Couldn’t send. Please try again.'}));
@@ -356,7 +463,8 @@ async function send(){
 if(new URLSearchParams(location.search).has('blank')){
   document.body.classList.add('blank'); addPaperStyles();
   document.getElementById('paper').innerHTML = guestPaper(null, '');
-} else draw();
+  document.fonts.ready.then(() => guestPaperFit(document.getElementById('paper')));
+} else { draw(); let rz = null; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if(VIEW==='paper' && !DONE && !document.activeElement?.matches('input,textarea')) draw(); }, 200); }); }
 </script>
 </body>
 </html>
