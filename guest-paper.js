@@ -16,23 +16,25 @@
 (function(){
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const PAW = '<path d="M12.1 11.2c-3.3 0-6.4 3.7-6.4 6.5 0 2.1 1.6 3.1 3.5 3.1 1.2 0 2-.7 2.9-.7s1.7.7 2.9.7c1.9 0 3.5-1 3.5-3.1 0-2.8-3.1-6.5-6.4-6.5z"/><ellipse cx="5.6" cy="9.3" rx="2.3" ry="2.9" transform="rotate(-18 5.6 9.3)"/><ellipse cx="9.7" cy="5.4" rx="2.3" ry="3" transform="rotate(-6 9.7 5.4)"/><ellipse cx="14.6" cy="5.4" rx="2.3" ry="3" transform="rotate(6 14.6 5.4)"/><ellipse cx="18.7" cy="9.3" rx="2.3" ry="2.9" transform="rotate(18 18.7 9.3)"/>';
-const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';fill:'+color+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
+// LINES: the ink-saving outline version (outline pictures, paws drawn as outlines)
+let LINES = false;
+const paw = (color, size, rot) => '<svg class="gp-paw" viewBox="0 0 24 24" style="width:'+size+';height:'+size+';'+(LINES ? 'fill:none;stroke:'+color+';stroke-width:1.2' : 'fill:'+color)+(rot ? ';transform:rotate('+rot+'deg)' : '')+'">'+PAW+'</svg>';
 // a little trail of black paw prints walking along a line
 function trail(n, back){
   let g = '';
   for(let i = 0; i < n; i++){ const x = 6 + i*15, y = i % 2 ? 4 : 13;
     g += '<g transform="translate('+x+' '+y+') rotate('+(i % 2 ? 100 : 80)+' 5 5) scale(.42)">'+PAW+'</g>'; }
   const w = n*15+8;   // back: the right-hand trail walks left, toward the title
-  return '<svg class="gp-trail" viewBox="0 0 '+w+' 26" preserveAspectRatio="xMidYMid meet">'+(back ? '<g transform="translate('+w+' 0) scale(-1 1)">'+g+'</g>' : g)+'</svg>';
+  return '<svg class="gp-trail"'+(LINES ? ' style="fill:none;stroke:#222;stroke-width:2.6"' : '')+' viewBox="0 0 '+w+' 26" preserveAspectRatio="xMidYMid meet">'+(back ? '<g transform="translate('+w+' 0) scale(-1 1)">'+g+'</g>' : g)+'</svg>';
 }
 const band = (title, cls, n) => '<div class="gp-band">'+trail(n || 8)+'<span class="'+cls+'">'+title+'</span>'+trail(n || 8, true)+'</div>';
 const fmtDate = v => { if(!v) return ''; const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v); return m ? (+m[2])+'/'+(+m[3])+'/'+m[1] : v; };
 const get = (o, path) => path.split('.').reduce((a, k) => a == null ? undefined : a[k], o);
 
 function guestPaper(d, base, opts){
-  base = base || ''; opts = opts || {};
+  base = base || ''; opts = opts || {}; LINES = !!opts.outline;
   const E = !!opts.edit, D = d || {}, pets = (D.pets && D.pets.length) ? D.pets : [{}];
-  const img = (n, cls) => '<img class="gp-art'+(cls ? ' gp-'+cls : '')+'" src="'+base+'img/form/'+n+'.png" alt="">';
+  const img = (n, cls) => '<img class="gp-art'+(cls ? ' gp-'+cls : '')+'" src="'+base+'img/form/'+(LINES ? 'outline/' : '')+n+'.png" alt="">';
   // the answer on a line: an input when filling in on screen, text when printing
   const val = (k, f) => { const v = get(D, k); return f==='date' ? fmtDate(v) : v; };
   const ans = (k, f) => E && k
