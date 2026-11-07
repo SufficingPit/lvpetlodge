@@ -78,12 +78,16 @@ input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;bord
 .views button+button{border-left:1px solid var(--field)}
 .views .on{background:var(--pri);color:var(--onp)}
 body.wide #app{max-width:880px}
-.sheetwrap{margin:10px -12px 0}
+.sheetwrap{width:min(100vw,1100px);margin:10px 0 0 calc(50% - min(50vw,550px))}
 .sheets{width:100%}
-.petbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 auto 10px;width:8.5in;max-width:100%;padding:10px 4px 0}
+body{overflow-x:clip}
+/* on screen the sheet loses its outer print margin so the framed page fills the width */
+.sheets .gp-pg{width:7.4in;height:10.15in;margin:0 auto calc(14px / var(--k,1))}
+.sheets .gp-frame{inset:0;border:0;border-radius:0}
+.petbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 auto 10px;width:7.4in;max-width:100%;padding:calc(10px / var(--k,1)) calc(14px / var(--k,1)) 0}
 .petbar b{font-size:calc(20px / var(--k,1))}
 .petbar .lk{font-size:calc(16px / var(--k,1));min-height:calc(40px / var(--k,1))}
-.addpet{display:block;width:8.5in;max-width:100%;margin:0 auto 18px;min-height:calc(52px / var(--k,1));font-size:calc(17px / var(--k,1));border-radius:calc(12px / var(--k,1))}
+.addpet{display:block;width:calc(7.4in - 28px / var(--k,1));max-width:100%;margin:0 auto 18px;min-height:calc(52px / var(--k,1));font-size:calc(17px / var(--k,1));border-radius:calc(12px / var(--k,1))}
 .tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 .tsh{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
 @media(min-width:660px){.tov{align-items:center}.tsh{border-radius:18px}}
@@ -364,7 +368,7 @@ function paperView(){
   // zoom the 8.5-inch pages to the width there is, whenever that changes
   let lastW = 0;
   const fit = () => { if(!wrap.isConnected || !wrap.clientWidth) return;
-    if(wrap.clientWidth!==lastW){ lastW = wrap.clientWidth; const k = Math.min(1, lastW / (8.5*96 + 4)); sheets.style.zoom = k; sheets.style.setProperty('--k', k); }
+    if(wrap.clientWidth!==lastW){ lastW = wrap.clientWidth; const k = lastW / (7.4*96); sheets.style.zoom = k; sheets.style.setProperty('--k', k); }
     guestPaperFit(sheets); };
   if(window.ResizeObserver) new ResizeObserver(fit).observe(wrap);
   setTimeout(fit, 0); document.fonts.ready.then(fit);
