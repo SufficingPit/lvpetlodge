@@ -55,11 +55,14 @@ nav .btn{min-height:40px;padding:0 16px;margin-left:6px;font-size:15px}
 .hero .tag{position:absolute;left:16px;bottom:16px;background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:var(--shadow)}
 @media(max-width:820px){.hero{padding-top:20px}.hero .hw{grid-template-columns:1fr;gap:22px}.hero .pic{order:-1}.hero .lead{font-size:18px}}
 /* hours strip */
-.hours{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:20px 22px;display:grid;grid-template-columns:auto 1fr auto;gap:8px 32px;align-items:center;margin-top:28px}
+.hours{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:18px 20px;margin-top:28px;display:grid;grid-template-columns:auto 1fr auto;gap:10px 32px;align-items:center}
 .hours h3{margin:0}
-.hours dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:2px 14px}
-.hours dt{font-weight:700}.hours dd{margin:0}
-@media(max-width:820px){.hours{grid-template-columns:1fr}}
+.hrs{display:grid;gap:8px}
+.hr-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hr-row b{width:80px;flex:none}
+.hr-t{background:var(--soft);color:var(--ink);border-radius:999px;padding:4px 12px;font-weight:600;font-size:15px;white-space:nowrap}
+#feeNote{font-size:14px}
+@media(max-width:820px){.hours{grid-template-columns:1fr;gap:12px}}
 section{padding:56px 0}
 section.tint{background:var(--soft)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -133,7 +136,7 @@ footer a{color:var(--mut)}
 <div class="wrap">
   <div class="hours" id="hours">
     <h3>Drop-off &amp; pickup</h3>
-    <dl id="hoursList"><dt>Mon–Sat</dt><dd>8–9:30 AM and 4–5:30 PM</dd><dt>Sun</dt><dd>5–6 PM only</dd></dl>
+    <div class="hrs" id="hoursList"><div class="hr-row"><b>Mon–Sat</b><span class="hr-t">8–9:30 AM</span><span class="hr-t">4–5:30 PM</span></div><div class="hr-row"><b>Sun</b><span class="hr-t">5–6 PM</span></div></div>
     <div class="mut" id="feeNote">Other times have a $10 fee.</div>
   </div>
 </div></div>
@@ -213,7 +216,7 @@ const paras = (box, text) => box.replaceChildren(...String(text||'').split(/\n\s
 const ICON = [
   '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="5.5" r="2.2"/><circle cx="14.5" cy="5.5" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4.5-6 7a3 3 0 0 0 3 3c1.2 0 2-.6 3-.6s1.8.6 3 .6a3 3 0 0 0 3-3c0-2.5-3-7-6-7z"/></svg>',
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4l3 4h8l3-4v9a7 7 0 0 1-14 0z"/><circle cx="9.5" cy="12" r=".6" fill="currentColor"/><circle cx="14.5" cy="12" r=".6" fill="currentColor"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3c-1 3-1 6 1 8M15 3c1 3 1 6-1 8"/><ellipse cx="12" cy="16" rx="6" ry="5"/></svg>'];
+  '<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8.6" cy="5.6" rx="1.7" ry="4.6" transform="rotate(-14 8.6 5.6)"/><ellipse cx="12.9" cy="5.4" rx="1.7" ry="4.6" transform="rotate(10 12.9 5.4)"/><circle cx="10.8" cy="11.6" r="3.7"/><ellipse cx="13" cy="17.6" rx="6.2" ry="4.4"/><circle cx="19.6" cy="16.4" r="1.6"/><circle cx="9.6" cy="11" r=".7" fill="var(--soft)"/></svg>'];
 let PHOTOS = [];
 
 function draw(c){
@@ -286,9 +289,10 @@ rpc('booking_info').then(info => {
   if(!info || !Array.isArray(info.hours)) return;
   const D = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], lines = [];
   info.hours.forEach((w, i) => { const t = w.length ? w.map(span).join(' and ') : 'Closed', last = lines[lines.length-1];
-    if(last && last.t===t && last.to===i-1) last.to = i; else lines.push({from:i, to:i, t}); });
+    if(last && last.t===t && last.to===i-1) last.to = i; else lines.push({from:i, to:i, t, w}); });
   lines.sort((a, b) => (a.from || 7) - (b.from || 7));   // Monday first
-  $('hoursList').replaceChildren(...lines.flatMap(l => [el('dt', null, l.from===l.to ? D[l.from] : D[l.from]+'–'+D[l.to]), el('dd', null, l.t)]));
+  $('hoursList').replaceChildren(...lines.map(l => { const r = el('div','hr-row'); r.append(el('b', null, l.from===l.to ? D[l.from] : D[l.from]+'–'+D[l.to]));
+    if(l.w.length) l.w.forEach(x => r.append(el('span','hr-t', span(x)))); else r.append(el('span','mut','Closed')); return r; }));
   if(info.fee != null) $('feeNote').textContent = info.fee ? 'Other times have a $'+info.fee+' fee.' : '';
 }).catch(() => {});
 </script>
