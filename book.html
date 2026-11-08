@@ -441,7 +441,7 @@ async function send(){
   try {
     const token = await humanCheck();
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
-      body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:[F.items.trim() && 'Bringing: '+F.items.trim().replace(/\s*\n\s*/g, ', '), F.notes.trim()].filter(Boolean).join('\n\n'),
+      body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(), bringing:F.items.trim().replace(/\s*\n\s*/g, ', '),
         ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined,
         meds:p.medsOn && (p.meds||'').trim() ? p.meds.trim() : undefined, note:(p.note||'').trim() || undefined}))}})});
     const r = await res.json().catch(() => ({ok:false}));
@@ -492,7 +492,7 @@ function formView(){
       input('name','Your name',{ac:'name', max:80}),
       h('div',{class:'two'}, input('phone','Phone',{type:'tel', ac:'tel', im:'tel', max:20}), input('email','Email (optional)',{type:'email', ac:'email', max:120})),
       input('items','What are you bringing? (optional)',{area:true, max:300, ph:'e.g. Bed, leash, toys'}),
-      input('notes','Anything else? (optional)',{area:true, max:650}),
+      input('notes','Anything else? (optional)',{area:true, max:1000}),
       ERR && h('div',{class:'err', role:'alert'}, ERR),
       h('button',{class:'b', disabled:SENDING || null, onclick:send}, SENDING ? 'Sending…' : 'Send request'),
       h('p',{class:'mut', style:'margin-top:10px'}, 'Your spot is held while we look at your request.')]];
