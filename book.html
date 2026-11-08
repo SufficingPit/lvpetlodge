@@ -351,7 +351,7 @@ const timeFee = (day, k, t) => !t ? 0 : !inHours(day, t) ? (INFO.fee || 0) : eve
 function timeNote(day, k){
   const t = F[k]; if(!t) return null;
   if(!inHours(day, t)) return INFO.fee ? h('p',{class:'tnote'}, h('b',{}, '+$'+INFO.fee+'.'), ' That’s outside our drop-off and pickup hours.') : null;
-  if(eveTime(day, k, t)) return h('p',{class:'tnote'}, h('b',{}, '+$'+INFO.eveFee+'.'), ' A late pickup, since your pet uses the kennel all day (like a late checkout at a hotel).');
+  if(eveTime(day, k, t)) return h('p',{class:'tnote'}, h('b',{}, '+$'+INFO.eveFee+'.'), ' Late pickup fee.');
   return null;
 }
 function timePick(day, k, label){
@@ -378,7 +378,7 @@ const hoursText = day => { const w = INFO.hours?.[parseD(day).getDay()] || [];
   return w.length ? 'Our hours this day: '+w.map(([a, b]) => t12(a).replace(':00','')+'–'+t12(b).replace(':00','')).join(', ') : 'We have no drop-off or pickup hours this day.'; };
 function feeLine(day, k, t){
   if(!inHours(day, t)) return INFO.fee ? ['fee', '+$'+INFO.fee+': that’s outside our drop-off and pickup hours.'] : ['ok', 'Outside our usual hours.'];
-  if(eveTime(day, k, t)) return ['fee', '+$'+INFO.eveFee+': a late pickup, since your pet uses the kennel all day (like a late checkout at a hotel).'];
+  if(eveTime(day, k, t)) return ['fee', '+$'+INFO.eveFee+' late pickup fee.'];
   return ['ok', 'In our hours, no extra charge.'];
 }
 function timeSheet(){
