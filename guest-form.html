@@ -610,7 +610,8 @@ if(new URLSearchParams(location.search).has('blank')){
   document.fonts.ready.then(() => guestPaperFit(document.getElementById('paper')));
 } else (async () => {
   if(REQ){ try { const st = await rpc('request_status', {p_token:REQ}); NEED = st && st.form ? {...st.form, pets:st.pets} : null; } catch(e) {}
-    if(NEED) MODE = NEED.update ? 'update' : NEED.family && (NEED.newPets || []).length ? 'pets' : NEED.family ? 'update' : 'new'; }
+    // already sent from this request: "Update it" opens what they sent (kept on the device) to change
+    if(NEED) MODE = NEED.sent || NEED.update ? 'update' : NEED.family && (NEED.newPets || []).length ? 'pets' : NEED.family ? 'update' : 'new'; }
   startForm(); draw();
 })();
 </script>
