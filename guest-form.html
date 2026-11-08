@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F7F7F5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111418" media="(prefers-color-scheme: dark)">
-<title>New Guest Form</title>
-<meta name="description" content="Fill out the new guest form for Little Village Pet Lodge online, or print it.">
+<title>Guest Form</title>
+<meta name="description" content="Fill out the guest form for Little Village Pet Lodge online, or print it.">
 <link rel="icon" type="image/png" href="img/icon-192.png">
 <script src="guest-paper.js"></script>
 <style>
@@ -112,7 +112,7 @@ body.blank #paper{display:block;padding:20px 0}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script>
 'use strict';
-/* New guest form, online. Fill it out once for each family's pets; it goes to the kennel
+/* Guest form, online. Fill it out once for each family's pets; it goes to the kennel
    app (through the request-spot server function, which runs the spam check), where Ashley
    files it onto the family. "Print or save as PDF" prints the paper form with the answers
    on it; ?blank shows (and prints) the empty paper form, which is new-form-line-art.pdf. */
@@ -329,7 +329,7 @@ function formView(){
         : NEED && NEED.update ? 'We’d like to make sure we have your latest details. Look it over, change anything that’s different, then sign and send it.'
         : FROMSENT ? 'Here’s the form you sent us. Change anything that’s different, then sign and send it.'
         : 'Fill it in with your current details, then sign and send it. It replaces what we have on file.')]
-    : [h('h1',{}, 'New guest form'),
+    : [h('h1',{}, 'Guest form'),
       h('p',{class:'mut'}, 'Fill this out once for your pets and send it to us, so it’s all ready at drop-off.')];
   return [...intro,
     REQ && h('p',{class:'mut', style:'font-size:13px'}, MODE==='new' ? 'Rather do it on paper? That’s fine: skip this and bring it filled out at drop-off. '
@@ -491,7 +491,7 @@ function signSheet(){
 function doneView(){
   return [h('h1',{}, MODE==='pets' ? 'Pet page sent' : MODE==='update' ? 'Form updated' : 'Form sent'),
     h('div',{class:'ok'}, h('b',{}, 'Thanks, '+F.owner.first.trim()+'! '+(MODE==='pets' ? 'We got '+petNamesText(F.pets)+'’s page.' : MODE==='update' ? 'We got your updated guest form.'
-      : 'We got your new guest form'+(F.pets.length ? ' for '+petNamesText(F.pets) : '')+'.'))),
+      : 'We got your guest form'+(F.pets.length ? ' for '+petNamesText(F.pets) : '')+'.'))),
     h('p',{}, 'You don’t need to bring a paper copy. If anything changes later, you can update it from our site, or just tell us at drop-off.'),
     // from a request: back to it; otherwise home, with booking a stay as the plain next step
     REQ ? h('a',{class:'b', href:'book.html?r='+REQ, style:'display:flex;align-items:center;justify-content:center;text-decoration:none'}, 'Back to your request')

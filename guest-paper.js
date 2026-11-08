@@ -1,5 +1,5 @@
 'use strict';
-/* The New Guest form as paper, based on Ashley's original printout (same wording), in
+/* The guest form as paper, based on Ashley's original printout (same wording), in
    black-and-white line art, laid out as:
    - a family page (welcome, registration, contacts, vet, who may pick up),
    - one page per pet (everything about that pet: details, medication, diet, personality),

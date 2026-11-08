@@ -512,14 +512,14 @@ function mineBox(){
 const listNames = n => n.length > 1 ? n.slice(0, -1).join(', ')+' and '+n[n.length-1] : n[0] || '';
 function formCard(s){
   const f = s.form;
-  if(!f) return (s.status==='pending' || s.status==='approved') && h('div',{style:'margin-top:4px'}, 'First time with us? ', h('a',{href:'guest-form.html?r='+TOKEN}, 'Fill out the new guest form'), ' so it’s ready at drop-off.');
+  if(!f) return (s.status==='pending' || s.status==='approved') && h('div',{style:'margin-top:4px'}, 'First time with us? ', h('a',{href:'guest-form.html?r='+TOKEN}, 'Fill out the guest form'), ' so it’s ready at drop-off.');
   const go = (label) => h('a',{class:'b', href:'guest-form.html?r='+TOKEN, style:'display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:10px'}, label);
   const paper = h('p',{class:'mut', style:'margin:10px 0 0;font-size:14px'}, 'Rather do it on paper? That’s fine, just bring it filled out at drop-off. ',
     h('a',{href:'new-form-line-art.pdf', target:'_blank', rel:'noopener'}, 'Print a blank one'), '.');
   if(f.sent) return h('div',{class:'card'}, h('b',{}, 'Guest form received'), h('div',{class:'mut'}, 'Thanks! Something changed? ', h('a',{href:'guest-form.html?r='+TOKEN}, 'Update it'), '.'));
   const pets = f.newPets || [];
   if(!f.family) return h('div',{class:'card'}, h('b',{}, 'First time with us? One more step'),
-    h('div',{class:'mut', style:'margin-top:4px'}, 'Before your first stay we need a new guest form: your details, a page for each pet, and our waiver. It takes about 10 minutes, and you can do it now or anytime before drop-off.'),
+    h('div',{class:'mut', style:'margin-top:4px'}, 'Before your first stay we need a guest form: your details, a page for each pet, and our waiver. It takes about 10 minutes, and you can do it now or anytime before drop-off.'),
     go('Fill out the guest form'), paper,
     h('p',{class:'mut', style:'margin:8px 0 0;font-size:14px'}, 'Been here before but something changed, like your phone number? Please fill it out again so we have your latest details.'));
   if(f.update) return h('div',{class:'card'}, h('b',{}, 'Please check your details'),
