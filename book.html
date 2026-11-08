@@ -457,7 +457,8 @@ async function send(){
 
 /* ---------- screens ---------- */
 function header(sub){ return [h('h1',{style:'margin-bottom:10px'}, sub)]; }
-const callUs = () => h('div',{class:'two', style:'margin-top:10px'}, h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)', href:'tel:'+PHONE}, 'Call '+PHONE_TEXT), h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)', href:'sms:'+PHONE}, 'Text us'));
+// the number never wraps: Call gets the wider share
+const callUs = () => h('div',{class:'two', style:'margin-top:10px'}, h('a',{class:'b2', style:'flex:1.6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink);white-space:nowrap;padding:0 10px', href:'tel:'+PHONE}, 'Call '+PHONE_TEXT), h('a',{class:'b2', style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink);white-space:nowrap;padding:0 10px', href:'sms:'+PHONE}, 'Text us'));
 function formView(){
   if(!INFO.on) return [header('Request a stay'), mineBox(), h('div',{class:'warn'}, INFO.offNote || 'Online requests are paused right now. Please call or text us to book.'), callUs()];
   const n = need(), nights = F.start && F.end ? nightsBetween(F.start, F.end) : 0;
