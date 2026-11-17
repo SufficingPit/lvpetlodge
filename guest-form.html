@@ -90,6 +90,15 @@ body{overflow-x:clip}
 .petbar .pbtns{display:flex;align-items:center;gap:calc(14px / var(--k,1))}
 .petbar .clr{display:inline-flex;align-items:center;gap:calc(5px / var(--k,1));color:var(--mut);font-weight:500}
 .b.bad{background:var(--bad);color:var(--card)}
+/* vet records box under each pet's page (sizes scaled like the pet bar) */
+.recs{width:calc(7.4in - 28px / var(--k,1));max-width:100%;margin:calc(-4px / var(--k,1)) auto calc(18px / var(--k,1));padding:calc(14px / var(--k,1));border:1px solid var(--line);border-radius:calc(12px / var(--k,1));background:var(--card);font-size:calc(16px / var(--k,1))}
+.recs b{display:block;font-size:calc(17px / var(--k,1))}
+.recs .mut{margin:calc(2px / var(--k,1)) 0 calc(10px / var(--k,1));font-size:calc(14px / var(--k,1))}
+.recs .rec{display:flex;align-items:center;gap:calc(10px / var(--k,1));padding:calc(6px / var(--k,1)) 0;border-top:1px solid var(--line)}
+.recs .rec span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recs .lk{font-size:calc(15px / var(--k,1));min-height:calc(36px / var(--k,1))}
+.recs label.b2{display:flex;align-items:center;justify-content:center;margin-top:calc(8px / var(--k,1));min-height:calc(46px / var(--k,1));font-size:calc(16px / var(--k,1));border-radius:calc(12px / var(--k,1));cursor:pointer}
+.recs .err{margin:calc(8px / var(--k,1)) 0 0;font-size:calc(14px / var(--k,1))}
 .addpet{display:block;width:calc(7.4in - 28px / var(--k,1));max-width:100%;margin:0 auto 18px;min-height:calc(52px / var(--k,1));font-size:calc(17px / var(--k,1));border-radius:calc(12px / var(--k,1))}
 .tov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 .tsh{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
@@ -163,6 +172,48 @@ const reqPet = p => ({...newPet(), species:['dog','cat','other'].includes(p.spec
   conditions:p.note || '', meds:(p.medsOn || p.meds) && typeof p.meds==='string' && p.meds ? [{name:p.meds, dose:'', freq:'', instr:''}] : []});
 const setName = (O, full) => { const parts = (full || '').trim().split(/\s+/); O.first = parts[0] || ''; O.last = parts.slice(1).join(' '); };
 let F = blankForm(), hadDraft = false, FROMSENT = false;
+/* Vet or shot records (optional), per pet: photos (redrawn as a JPEG up to 2000px) or PDFs, up to
+   3 per pet and 10 MB each. Kept in memory only (too big for the saved draft). Sending the form
+   says which files are coming (data.pets[i].docs = [{name, kind, path}]); the server answers with
+   one-time upload links, and the files go straight to the kennel's private storage. */
+const RECS = new WeakMap(), MAX_RECS = 3;
+const recsOf = p => { if(!RECS.has(p)) RECS.set(p, []); return RECS.get(p); };
+let RECERR = null;   // {pet, msg}
+async function shrinkImage(file, max = 2000){
+  let im;
+  try { im = await createImageBitmap(file); }
+  catch(e){ im = await new Promise((ok, no) => { const x = new Image(); x.onload = () => ok(x); x.onerror = no; x.src = URL.createObjectURL(file); }); }
+  const k = Math.min(1, max / Math.max(im.width, im.height));
+  const cv = document.createElement('canvas'); cv.width = Math.round(im.width*k); cv.height = Math.round(im.height*k);
+  const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(im, 0, 0, cv.width, cv.height);
+  return new Promise((ok, no) => cv.toBlob(b => b ? ok(b) : no(new Error('bad image')), 'image/jpeg', .82));
+}
+async function addRecs(p, files){
+  RECERR = null;
+  for(const f of files){
+    const list = recsOf(p);
+    if(list.length >= MAX_RECS){ RECERR = {pet:p, msg:'Up to '+MAX_RECS+' files per pet.'}; break; }
+    const pdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
+    if(!pdf && !/^image\//.test(f.type)){ RECERR = {pet:p, msg:'Only photos and PDFs can be added.'}; continue; }
+    let blob = f;
+    if(!pdf){ try { blob = await shrinkImage(f); } catch(e){ RECERR = {pet:p, msg:'Couldn’t read that photo. Try another one.'}; continue; } }
+    if(blob.size > 10e6){ RECERR = {pet:p, msg:'That file is too big (over 10 MB).'}; continue; }
+    const name = pdf ? f.name.replace(/\.pdf$/i,'').replace(/_+/g,' ').trim().slice(0, 60) || 'Vet record' : 'Vet record';
+    list.push({name, kind:pdf ? 'pdf' : 'img', blob});
+  }
+  draw();
+}
+function recsBox(p){
+  const list = recsOf(p), nm = p.name.trim();
+  return h('div',{class:'recs'},
+    h('b',{}, 'Vet or shot records'),
+    h('p',{class:'mut'}, 'Optional. A photo or PDF of '+(nm ? nm+'’s' : 'their')+' vaccine record, so you don’t have to bring it.'),
+    list.map((r, j) => h('div',{class:'rec'}, h('span',{}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
+      h('button',{type:'button', class:'lk bad', onclick:()=>{ list.splice(j, 1); RECERR = null; draw(); }}, 'Remove'))),
+    list.length < MAX_RECS && h('label',{class:'b2'}, list.length ? '+ Add another' : '+ Add photo or PDF',
+      h('input',{type:'file', accept:'image/*,application/pdf', multiple:true, style:'display:none', onchange:e => addRecs(p, [...e.target.files])})),
+    RECERR && RECERR.pet===p && h('p',{class:'err'}, RECERR.msg));
+}
 function startForm(){
   if(MODE==='pets') DRAFT = 'lvpl-guest-pets-'+REQ;
   const d = load(DRAFT), sent = load(SENT);
@@ -420,6 +471,7 @@ function paperView(){
       h('span',{class:'pbtns'},
         clearBtn('Clear '+(nm ? nm+'’s' : 'this pet’s')+' page?', 'Every answer on this pet’s page is erased.', () => { F.pets[i] = newPet(); }),
         F.pets.length > 1 && h('button',{type:'button', class:'lk bad', onclick:()=>ask('Remove '+(nm || 'this pet')+'?', 'This pet’s page and its answers are taken off the form.', 'Remove', () => { F.pets.splice(i, 1); })}, 'Remove pet'))));
+    pp.append(recsBox(p));
     if(i===F.pets.length-1 && F.pets.length < 8) pp.after(h('button',{type:'button', class:'b2 addpet', onclick:()=>{ F.pets.push(newPet()); saveDraft(); draw(); }}, '+ Add another pet'));
   });
   sheets.oninput = e => {
@@ -492,6 +544,10 @@ function doneView(){
   return [h('h1',{}, MODE==='pets' ? 'Pet page sent' : MODE==='update' ? 'Form updated' : 'Form sent'),
     h('div',{class:'ok'}, h('b',{}, 'Thanks, '+F.owner.first.trim()+'! '+(MODE==='pets' ? 'We got '+petNamesText(F.pets)+'’s page.' : MODE==='update' ? 'We got your updated guest form.'
       : 'We got your guest form'+(F.pets.length ? ' for '+petNamesText(F.pets) : '')+'.'))),
+    UPS && (UPS.busy ? h('p',{class:'mut'}, 'Sending your vet records…')
+      : UPS.failed ? h('div',{class:'err'}, (UPS.failed===1 ? 'One file' : UPS.failed+' files')+' didn’t go through. Your form is in. ',
+          h('button',{type:'button', class:'lk', style:'padding:0;min-height:0', onclick:uploadRecs}, 'Try again'), ' or bring the record at drop-off.')
+      : h('p',{}, 'Your vet records came through too.')),
     h('p',{}, 'You don’t need to bring a paper copy. If anything changes later, you can update it from our site, or just tell us at drop-off.'),
     // from a request: back to it; otherwise home, with booking a stay as the plain next step
     REQ ? h('a',{class:'b', href:'book.html?r='+REQ, style:'display:flex;align-items:center;justify-content:center;text-decoration:none'}, 'Back to your request')
@@ -574,6 +630,22 @@ const reasonText = (r, what) => !r ? oops(what) : /human check/i.test(r) ? ROBOT
 // something that threw on the way (no connection, robot check, a bad reply)
 const thrownText = (e, what) => /didn.t load/.test(e && e.message || '') ? ROBOT_LOAD : /human check/i.test(e && e.message || '') ? ROBOT_FAIL
   : (navigator.onLine===false || e instanceof TypeError) ? offline(what) : oops(what);
+// after the form is in: send each record to its one-time upload link (a file already there counts as sent)
+let UPS = null;
+async function uploadRecs(){
+  UPS.busy = true; UPS.failed = 0; draw();
+  for(const u of UPS.list){
+    if(u.sent) continue;
+    const link = UPS.links.find(x => x.path===u.path);
+    try {
+      if(!link) throw new Error('no link');
+      const res = await fetch(link.url, {method:'PUT', headers:{'Content-Type':u.kind==='pdf' ? 'application/pdf' : 'image/jpeg', 'x-upsert':'false'}, body:u.blob});
+      if(!res.ok){ const t = await res.text().catch(() => ''); if(!(res.status===409 || /duplicate|already exists/i.test(t))) throw new Error(t); }
+      u.sent = true;
+    } catch(e){ UPS.failed++; }
+  }
+  UPS.busy = false; draw();
+}
 async function send(){
   ERR = problem();
   if(ERR){ draw(); document.getElementById('err')?.scrollIntoView({block:'center'}); return; }
@@ -582,15 +654,18 @@ async function send(){
     if(F.sign.img && F.sign.img.length > 30000) F.sign.img = await shrinkSig(F.sign.img);   // drafts saved before signatures were kept small
     const token = await humanCheck();
     F.sign.date = todayYmd();
+    const ups = [];   // files to upload once the form is in: {blob, kind, path}
     const data = {...paperData(), key:undefined, agree:MODE!=='pets', mode:MODE,
-      pets:F.pets.map(p => ({...p, meds:(p.meds || []).filter(m => [m.name, m.dose, m.freq, m.instr].some(x => (x || '').trim()))}))};
+      pets:F.pets.map((p, i) => ({...p, meds:(p.meds || []).filter(m => [m.name, m.dose, m.freq, m.instr].some(x => (x || '').trim())),
+        docs:F.key && recsOf(p).length ? recsOf(p).map((r, j) => { const path = 'forms/'+F.key+'/'+i+'-'+j+(r.kind==='pdf' ? '.pdf' : '.jpg');
+          ups.push({blob:r.blob, kind:r.kind, path}); return {name:r.name, kind:r.kind, path}; }) : undefined}))};
     if(JSON.stringify({key:F.key, data}).length > 59000){
       SENDING = false; ERR = 'Sorry, your form came out too large to send, which shouldn’t happen. Your answers are still here. Please try signing again, and if it still won’t send, call or text us at '+CALL_TEXT+'.'; draw(); return; }
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
       body:JSON.stringify({token, kind:'form', p:{key:F.key, data, req:REQ || undefined}})});
     // (the server takes forms up to 60 KB; a typical one with a signature is well under 20 KB)
     const r = await res.json().catch(() => ({ok:false}));
-    if(r.ok){ DONE = true;
+    if(r.ok){ DONE = true; UPS = ups.length ? {list:ups, links:r.uploads || [], failed:0, busy:true} : null;
       // keep what they sent (without the signature) so it can be updated later; a pets form adds its pets
       try { const sent = load(SENT), keep = {...F, agree:false, sign:{name:F.sign.name, img:'', date:''}};
         localStorage.setItem(SENT, JSON.stringify(MODE==='pets' && sent && sent.owner
@@ -598,7 +673,7 @@ async function send(){
           : MODE==='pets' ? null : keep));
         if(MODE==='pets' && !(sent && sent.owner)) localStorage.removeItem(SENT);
         localStorage.removeItem(DRAFT); } catch(e) {}
-      scrollTo(0, 0); }
+      scrollTo(0, 0); if(UPS){ SENDING = false; await uploadRecs(); return; } }
     else ERR = reasonText(r.reason, 'form');
   } catch(e){ ERR = thrownText(e, 'form'); }
   SENDING = false; draw();
