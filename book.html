@@ -603,9 +603,14 @@ async function sendRecs(){
 function recsCard(s){
   if(!s.form) return null;   // only while it's waiting or booked and the stay is ahead
   const sent = s.docs || [], picked = Object.values(RQ.files).reduce((a, l) => a + l.length, 0);
+  // every pet already has records (sent here or with the guest form): say so, so nobody sends the same thing twice
+  const allIn = s.pets.length > 0 && s.pets.every((p, i) => sent.some(d => d.pet===i));
+  const fromForm = sent.some(d => d.form);
   return h('div',{class:'card recs'}, h('b',{}, 'Vet or shot records'),
-    h('div',{class:'mut', style:'margin-top:4px'}, !s.form.family
-      ? 'If you are new, we will need updated shot records for your pet’s stay. You can upload them here!'
+    h('div',{class:'mut', style:'margin-top:4px'}, allIn
+      ? 'Thanks, we have '+(s.pets.length > 1 ? 'records for each of your pets' : 'your pet’s records')+(fromForm ? ' from your guest form' : '')+'! You only need to add more if something has changed.'
+      : !s.form.family
+      ? 'If you are new, we will need updated shot records for your pet’s stay. You can upload them here!'+(s.form.sent ? '' : ' (Or add them in the guest form. Either one is fine, no need for both.)')
       : 'Make sure your pet is up to date on their vaccinations and that we have their updated records too! You can upload them here.'),
     s.pets.map((p, i) => { const had = sent.filter(d => d.pet===i), list = RQ.files[i] || [], room = 6 - had.length;
       return h('div',{class:'rpet'}, h('div',{class:'rpn'}, p.name),
@@ -685,10 +690,12 @@ const TOKEN = new URLSearchParams(location.search).get('r');
 (async () => {
   if(TOKEN){
     draw();
-    // the preview copy only: ?r=demo (new customer) or ?r=demo-back (returning) shows a made-up request to look at; nothing sends
-    if(/-preview\//.test(location.pathname) && /^demo(-back)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
+    // the preview copy only: ?r=demo (new customer), demo-back (returning) or demo-sent (guest form sent with records)
+    // shows a made-up request to look at; nothing sends
+    if(/-preview\//.test(location.pathname) && /^demo(-back|-sent)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
       STATUS = {status:TOKEN==='demo' ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
-        pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], docs:[], form:{family:TOKEN!=='demo', sent:TOKEN!=='demo'}};
+        pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo'},
+        docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Clio shots', kind:'pdf', form:true}] : []};
       refresh = async () => {}; sendRecs = async () => { RQ.err = 'This is a preview with a made-up request, so nothing was sent.'; draw(); };
       draw(); return; }
     if(!/^[0-9a-f-]{36}$/i.test(TOKEN)){ STATUS = false; draw(); return; }
