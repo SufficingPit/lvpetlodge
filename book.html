@@ -44,6 +44,9 @@ button:disabled{cursor:default}
 .recs .rec{display:flex;align-items:center;gap:10px;padding:6px 0}
 .recs .rthumb{width:44px;height:44px;flex:none;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:12px;font-weight:700;color:#5B6472}
 .recs .rthumb img{width:100%;height:100%;object-fit:cover}
+.recs button.rthumb{padding:0;cursor:zoom-in}
+.peek{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.peek img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
 .recs .rname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .recs label.b2{display:flex;align-items:center;justify-content:center;margin-top:6px;cursor:pointer}
 .recs .b{margin-top:12px}
@@ -543,8 +546,24 @@ function formCard(s){
    Sending runs the human check, the server gives each file its place and a one-time upload link,
    and the files go straight to the kennel's private storage. A file that didn't finish uploading
    keeps its link, so "Send" again just retries it. */
-const RQ = {files:{}, err:'', busy:false, ok:''};   // files[pet index] = [{name, kind, blob, url, ix, link, sent}]
+const RQ = {files:{}, err:'', busy:false, ok:''};   // files[pet index] = [{name, kind, blob, url, ix, link, path, sent}]
 let RQIX = 0;
+/* A small copy of each photo they sent from this page stays on this phone (the real files are private),
+   so "Sent" can show what it was. Kept per request until the stay is over:
+   lvpl-sent-recs = {token: {end, at: {'<pet>-<n>': data URL}}}, n = the file's place among that pet's files sent here. */
+const SENTKEY = 'lvpl-sent-recs';
+let SENTRECS = {};
+try { SENTRECS = JSON.parse(localStorage.getItem(SENTKEY)) || {}; const t = ymdOf(new Date());
+  for(const k in SENTRECS) if(!SENTRECS[k] || !SENTRECS[k].end || SENTRECS[k].end < t) delete SENTRECS[k]; localStorage.setItem(SENTKEY, JSON.stringify(SENTRECS)); } catch(e) { SENTRECS = {}; }
+async function keepSent(path, blob, end){
+  const m = /(\d+)-(\d+)\.jpg$/.exec(path || ''); if(!m) return;
+  try {
+    const small = await shrinkImage(blob, 480), url = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(small); });
+    const e = SENTRECS[TOKEN] ||= {end, at:{}}; e.end = end; e.at[m[1]+'-'+m[2]] = url;
+    localStorage.setItem(SENTKEY, JSON.stringify(SENTRECS));
+  } catch(e) {}   // full storage or a private window: it just shows a check mark
+}
+let PEEK = null;   // a sent photo shown big
 async function shrinkImage(file, max = 2000){
   let im;
   try { im = await createImageBitmap(file); }
@@ -580,7 +599,7 @@ async function sendRecs(){
         body:JSON.stringify({token, kind:'records', p:{req:TOKEN, docs:fresh.map(x => ({ix:x.r.ix, pet:x.pet, name:x.r.name, kind:x.r.kind}))}})});
       const out = await res.json().catch(() => ({ok:false}));
       if(!out.ok){ RQ.busy = false; RQ.err = /^(This request is closed|That’s as many)/.test(out.reason || '') ? out.reason : reasonText(out.reason, 'records'); draw(); return; }
-      (out.docs || []).forEach(d => { const x = fresh.find(y => y.r.ix===d.ix); if(x) x.r.link = (out.uploads || []).find(u => u.path===d.path)?.url || 'none'; });
+      (out.docs || []).forEach(d => { const x = fresh.find(y => y.r.ix===d.ix); if(x){ x.r.path = d.path; x.r.link = (out.uploads || []).find(u => u.path===d.path)?.url || 'none'; } });
     }
     let failed = 0;
     for(const x of all){
@@ -590,6 +609,7 @@ async function sendRecs(){
         const up = await fetch(x.r.link, {method:'PUT', headers:{'Content-Type':x.r.kind==='pdf' ? 'application/pdf' : 'image/jpeg', 'x-upsert':'false'}, body:x.r.blob});
         if(!up.ok){ const t = await up.text().catch(() => ''); if(!(up.status===409 || /duplicate|already exists/i.test(t))) throw new Error(t); }
         x.r.sent = true;
+        if(x.r.kind==='img') await keepSent(x.r.path, x.r.blob, STATUS && STATUS.end);
       } catch(e){ failed++; }
     }
     // sent ones now show from the server; any that didn't upload stay here to try again
@@ -614,14 +634,17 @@ function recsCard(s){
       : 'Make sure your pet is up to date on their vaccinations and that we have their updated records too! You can upload them here.'),
     s.pets.map((p, i) => { const had = sent.filter(d => d.pet===i), list = RQ.files[i] || [], room = 6 - had.length;
       return h('div',{class:'rpet'}, h('div',{class:'rpn'}, p.name),
-        had.map(d => h('div',{class:'rec'}, h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.name), h('span',{class:'mut'}, d.form ? 'Sent with your guest form' : 'Sent'))),
+        had.map(d => { const n = had.filter(x => !x.form).indexOf(d), kept = !d.form && d.kind!=='pdf' && SENTRECS[TOKEN]?.at[i+'-'+n];
+          return h('div',{class:'rec'}, kept ? h('button',{class:'rthumb', 'aria-label':'See '+d.name, onclick:()=>{ PEEK = kept; draw(); }}, h('img',{src:kept, alt:''}))
+            : h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.name), h('span',{class:'mut'}, d.form ? 'Sent with your guest form' : 'Sent')); }),
         list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
           !RQ.busy && h('button',{class:'lk bad', onclick:()=>{ if(r.url) URL.revokeObjectURL(r.url); list.splice(j, 1); RQ.err = ''; draw(); }}, 'Remove'))),
         list.length < room && !RQ.busy && h('label',{class:'b2'}, had.length || list.length ? '+ Add another' : '+ Add photo or PDF',
           h('input',{type:'file', accept:'image/*,application/pdf', multiple:true, style:'display:none', onchange:e => addRecs(i, [...e.target.files], room)}))); }),
     RQ.err && h('div',{class:'err', role:'alert'}, RQ.err),
     RQ.ok && !picked && h('div',{class:'ok'}, RQ.ok),
-    picked > 0 && h('button',{class:'b', disabled:RQ.busy || null, onclick:sendRecs}, RQ.busy ? 'Sending…' : 'Send '+plural(picked, 'record')));
+    picked > 0 && h('button',{class:'b', disabled:RQ.busy || null, onclick:sendRecs}, RQ.busy ? 'Sending…' : 'Send '+plural(picked, 'record')),
+    PEEK && h('div',{class:'peek', role:'dialog', 'aria-label':'Sent record', onclick:()=>{ PEEK = null; draw(); }}, h('img',{src:PEEK, alt:'Sent record'})));
 }
 function statusView(){
   if(STATUS===null) return [header('Your request'), h('p',{class:'mut'},'Loading…')];
@@ -696,7 +719,12 @@ const TOKEN = new URLSearchParams(location.search).get('r');
       STATUS = {status:TOKEN==='demo' ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
         pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo'},
         docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Clio shots', kind:'pdf', form:true}] : []};
-      refresh = async () => {}; sendRecs = async () => { RQ.err = 'This is a preview with a made-up request, so nothing was sent.'; draw(); };
+      refresh = async () => {};
+      sendRecs = async () => { RQ.busy = true; draw();
+        for(const [i, l] of Object.entries(RQ.files)) for(const r of l){ const n = STATUS.docs.filter(d => d.pet===+i && !d.form).length;
+          if(r.kind==='img') await keepSent('requests/demo/'+i+'-'+n+'.jpg', r.blob, STATUS.end);
+          STATUS.docs.push({pet:+i, name:r.name, kind:r.kind}); }
+        RQ.files = {}; RQ.busy = false; RQ.ok = 'Preview: nothing was really sent, but this is how it looks after sending.'; draw(); };
       draw(); return; }
     if(!/^[0-9a-f-]{36}$/i.test(TOKEN)){ STATUS = false; draw(); return; }
     try { await refresh(); } catch(e){ STATUS = false; }
