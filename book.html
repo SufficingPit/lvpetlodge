@@ -583,7 +583,7 @@ async function addRecs(i, files, room){
     let blob = f;
     if(!pdf){ try { blob = await shrinkImage(f); } catch(e){ RQ.err = 'Couldn’t read that photo. Try another one.'; continue; } }
     if(blob.size > 10e6){ RQ.err = 'That file is too big (over 10 MB).'; continue; }
-    const name = pdf ? f.name.replace(/\.pdf$/i,'').replace(/_+/g,' ').trim().slice(0, 60) || 'Vet record' : 'Vet record';
+    const name = 'Vet record';   // they don't name them; the app shows Photo or PDF and the pet
     list.push({name, kind:pdf ? 'pdf' : 'img', blob, url:pdf ? '' : URL.createObjectURL(blob), ix:RQIX++});
   }
   draw();
@@ -636,8 +636,8 @@ function recsCard(s){
       return h('div',{class:'rpet'}, h('div',{class:'rpn'}, p.name),
         had.map(d => { const n = had.filter(x => !x.form).indexOf(d), kept = !d.form && d.kind!=='pdf' && SENTRECS[TOKEN]?.at[i+'-'+n];
           return h('div',{class:'rec'}, kept ? h('button',{class:'rthumb', 'aria-label':'See '+d.name, onclick:()=>{ PEEK = kept; draw(); }}, h('img',{src:kept, alt:''}))
-            : h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.name), h('span',{class:'mut'}, d.form ? 'Sent with your guest form' : 'Sent')); }),
-        list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
+            : h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.kind==='pdf' ? 'PDF' : 'Photo'), h('span',{class:'mut'}, d.form ? 'Sent with your guest form' : 'Sent')); }),
+        list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, r.kind==='pdf' ? 'PDF' : 'Photo'),
           !RQ.busy && h('button',{class:'lk bad', onclick:()=>{ if(r.url) URL.revokeObjectURL(r.url); list.splice(j, 1); RQ.err = ''; draw(); }}, 'Remove'))),
         list.length < room && !RQ.busy && h('label',{class:'b2'}, had.length || list.length ? '+ Add another' : '+ Add photo or PDF',
           h('input',{type:'file', accept:'image/*,application/pdf', multiple:true, style:'display:none', onchange:e => addRecs(i, [...e.target.files], room)}))); }),
@@ -718,7 +718,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
     if(/-preview\//.test(location.pathname) && /^demo(-back|-sent)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
       STATUS = {status:TOKEN==='demo' ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
         pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo'},
-        docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Clio shots', kind:'pdf', form:true}] : []};
+        docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Vet record', kind:'pdf', form:true}] : []};
       refresh = async () => {};
       sendRecs = async () => { RQ.busy = true; draw();
         for(const [i, l] of Object.entries(RQ.files)) for(const r of l){ const n = STATUS.docs.filter(d => d.pet===+i && !d.form).length;

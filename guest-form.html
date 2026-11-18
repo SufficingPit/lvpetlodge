@@ -200,7 +200,7 @@ async function addRecs(p, files){
     let blob = f;
     if(!pdf){ try { blob = await shrinkImage(f); } catch(e){ RECERR = {pet:p, msg:'Couldn’t read that photo. Try another one.'}; continue; } }
     if(blob.size > 10e6){ RECERR = {pet:p, msg:'That file is too big (over 10 MB).'}; continue; }
-    const name = pdf ? f.name.replace(/\.pdf$/i,'').replace(/_+/g,' ').trim().slice(0, 60) || 'Vet record' : 'Vet record';
+    const name = 'Vet record';   // they don't name them; the app shows Photo or PDF and the pet
     list.push({name, kind:pdf ? 'pdf' : 'img', blob, url:pdf ? '' : URL.createObjectURL(blob)});
   }
   draw();
@@ -210,7 +210,7 @@ function recsBox(p){
   return h('div',{class:'recs'},
     h('b',{}, 'Vet or shot records'),
     h('p',{class:'mut'}, 'Optional. A photo or PDF of '+(nm ? nm+'’s' : 'their')+' vaccine record, so you don’t have to bring it.'),
-    list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
+    list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, r.kind==='pdf' ? 'PDF' : 'Photo'),
       h('button',{type:'button', class:'lk bad', onclick:()=>{ if(r.url) URL.revokeObjectURL(r.url); list.splice(j, 1); RECERR = null; draw(); }}, 'Remove'))),
     list.length < MAX_RECS && h('label',{class:'b2'}, list.length ? '+ Add another' : '+ Add photo or PDF',
       h('input',{type:'file', accept:'image/*,application/pdf', multiple:true, style:'display:none', onchange:e => addRecs(p, [...e.target.files])})),
