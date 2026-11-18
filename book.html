@@ -527,7 +527,9 @@ function formCard(s){
   const go = (label) => h('a',{class:'b', href:'guest-form.html?r='+TOKEN, style:'display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:10px'}, label);
   const paper = h('p',{class:'mut', style:'margin:10px 0 0;font-size:14px'}, 'Rather do it on paper? That’s fine, just bring it filled out at drop-off. ',
     h('a',{href:'new-form-line-art.pdf', target:'_blank', rel:'noopener'}, 'Print a blank one'), '.');
-  if(f.sent) return h('div',{class:'card'}, h('b',{}, 'Guest form received'), h('div',{class:'mut'}, 'Thanks! Something changed? ', h('a',{href:'guest-form.html?r='+TOKEN}, 'Update it'), '.'));
+  const upd = (href, label) => h('a',{class:'b2', href, style:'display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink);margin-top:10px'}, label);
+  if(f.sent) return h('div',{class:'card'}, h('b',{}, 'Guest form received'), h('div',{class:'mut', style:'margin-top:4px'}, 'Thanks! If anything changes before drop-off, you can update it.'),
+    upd('guest-form.html?r='+TOKEN, 'Update my guest form'));
   const pets = f.newPets || [];
   if(!f.family) return h('div',{class:'card'}, h('b',{}, 'First time with us? One more step'),
     h('div',{class:'mut', style:'margin-top:4px'}, 'Before your first stay we need a guest form: your details, a page for each pet, and our waiver. It takes about 10 minutes, and you can do it now or anytime before drop-off.'),
@@ -539,7 +541,10 @@ function formCard(s){
   if(pets.length) return h('div',{class:'card'}, h('b',{}, 'New pet? We’ll need a page for '+listNames(pets)),
     h('div',{class:'mut', style:'margin-top:4px'}, 'We have your family on file, but not '+listNames(pets)+' yet. Their page takes a few minutes.'),
     go(pets.length > 1 ? 'Fill out their pages' : 'Fill out '+pets[0]+'’s page'), paper);
-  return h('p',{class:'mut', style:'margin:12px 0 0;font-size:14px'}, 'We have your guest form on file'+(f.formDate ? ' (last updated '+longDate(f.formDate)+')' : '')+'. Something changed? ', h('a',{href:'guest-form.html?update'}, 'Update it'), '.');
+  return h('div',{class:'card'}, h('b',{}, 'Guest form on file'),
+    f.formDate && h('div',{style:'margin-top:2px'}, 'Last updated '+longDate(f.formDate)),
+    h('div',{class:'mut', style:'margin-top:4px'}, 'Something changed, like your phone number, vet or your pet’s care? Update it so we have the latest.'),
+    upd('guest-form.html?update', 'Update my guest form'));
 }
 /* Vet or shot records for this request's pets (optional), new customers or returning ones.
    Photos are redrawn as a JPEG up to 2000px; PDFs go as they are; up to 6 per pet, 10 MB each.
