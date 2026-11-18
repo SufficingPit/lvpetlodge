@@ -452,14 +452,14 @@ async function send(){
   try {
     const token = await humanCheck();
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
-      body:JSON.stringify({token, p:{key:F.key, start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(), bringing:F.items.trim().replace(/\s*\n\s*/g, ', '),
+      body:JSON.stringify({token, p:{key:F.key, from:(() => { try { return sessionStorage.getItem('lvpl-from') || undefined; } catch(e) { return undefined; } })(), start:F.start, end:F.end, arr:F.arr, pick:F.pick, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), notes:F.notes.trim(), bringing:F.items.trim().replace(/\s*\n\s*/g, ', '),
         ownFood:F.ownFood, pets:F.pets.map(p => ({name:p.name.trim(), species:p.species, breed:p.breed.trim(), group:lettered(p) ? p.g : null, kind:p.species==='other' ? (p.kind||'').trim() : undefined, cage:p.species==='other' ? !!p.cage : undefined,
         meds:p.medsOn && (p.meds||'').trim() ? p.meds.trim() : undefined, note:(p.note||'').trim() || undefined}))}})});
     const r = await res.json().catch(() => ({ok:false}));
     if(r.ok){
       MEM.reqs = [{token:r.token, start:F.start, end:F.end}, ...MEM.reqs.filter(x => x.token!==r.token)].slice(0, 8);
       MEM.me = {ownFood:F.ownFood, name:F.name.trim(), phone:F.phone.trim(), email:F.email.trim(), pets:F.pets.map(p => ({species:p.species, name:p.name.trim(), breed:p.breed.trim(), g:p.g, kind:p.kind, cage:p.cage, medsOn:!!p.medsOn, meds:p.meds||'', note:p.note||''}))};
-      saveMem(); try { sessionStorage.setItem('lvpl-new', r.token); } catch(e) {}
+      saveMem(); try { sessionStorage.setItem('lvpl-new', r.token); sessionStorage.removeItem('lvpl-from'); } catch(e) {}
       location.assign('?r='+r.token); return; }
     else { ERR = reasonText(r.reason, 'request'); if(/spots|closed|soon|far|shortest/i.test(r.reason || '')){ DAYS = {}; for(const k in loading) delete loading[k]; check(); } }
   } catch(e){ ERR = thrownText(e, 'request'); }
@@ -539,7 +539,7 @@ function formCard(s){
   if(pets.length) return h('div',{class:'card'}, h('b',{}, 'New pet? We’ll need a page for '+listNames(pets)),
     h('div',{class:'mut', style:'margin-top:4px'}, 'We have your family on file, but not '+listNames(pets)+' yet. Their page takes a few minutes.'),
     go(pets.length > 1 ? 'Fill out their pages' : 'Fill out '+pets[0]+'’s page'), paper);
-  return h('p',{class:'mut', style:'margin:12px 0 0;font-size:14px'}, 'We have your guest form on file. Something changed? ', h('a',{href:'guest-form.html?update'}, 'Update it'), '.');
+  return h('p',{class:'mut', style:'margin:12px 0 0;font-size:14px'}, 'We have your guest form on file'+(f.formDate ? ' (last updated '+longDate(f.formDate)+')' : '')+'. Something changed? ', h('a',{href:'guest-form.html?update'}, 'Update it'), '.');
 }
 /* Vet or shot records for this request's pets (optional), new customers or returning ones.
    Photos are redrawn as a JPEG up to 2000px; PDFs go as they are; up to 6 per pet, 10 MB each.
@@ -697,7 +697,7 @@ async function cancelIt(change){
   try {
     const ok = await rpc('request_cancel', {p_token:TOKEN});
     if(!ok){ ERR = 'This request was already answered, so it can’t be changed here. Please call or text us.'; }
-    else if(change){ location.href = location.pathname; return; }
+    else if(change){ try { sessionStorage.setItem('lvpl-from', TOKEN); } catch(e) {} location.href = location.pathname; return; }   // records follow to the new request
     CONFIRM = false; await refresh();
   } catch(e){ ERR = navigator.onLine===false ? 'That didn’t go through because the connection dropped. Please try again once you’re back online.' : 'Sorry, something went wrong on our side and that didn’t go through. Please try again in a minute, or call or text us at '+CALL_TEXT+'.'; }
   draw();
@@ -727,7 +727,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
     if(/-preview\//.test(location.pathname) && /^demo(-back|-sent|-done)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
       const newOne = TOKEN==='demo' || TOKEN==='demo-done';
       STATUS = {status:newOne ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
-        pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo', onFile:TOKEN==='demo-back' ? [{pet:1, at:d(-200)}] : []},
+        pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo' && TOKEN!=='demo-back', formDate:TOKEN==='demo-back' ? d(-200) : null, onFile:TOKEN==='demo-back' ? [{pet:1, at:d(-200)}] : []},
         docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Vet record', kind:'pdf', form:true}]
           : TOKEN==='demo-done' ? [{pet:0, name:'Vet record', kind:'img'}, {pet:0, name:'Vet record', kind:'pdf'}, {pet:1, name:'Vet record', kind:'img'}]
           : TOKEN==='demo-back' ? [{pet:0, name:'Vet record', kind:'img'}] : []};
