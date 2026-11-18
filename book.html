@@ -588,6 +588,7 @@ async function addRecs(i, files, room){
   }
   draw();
 }
+const longDate = v => new Date(v+'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
 async function sendRecs(){
   RQ.err = ''; RQ.ok = ''; RQ.busy = true; draw();
   const all = Object.entries(RQ.files).flatMap(([i, l]) => l.map(r => ({r, pet:+i})));
@@ -626,15 +627,22 @@ function recsCard(s){
   // every pet already has records (sent here or with the guest form): say so, so nobody sends the same thing twice
   const allIn = s.pets.length > 0 && s.pets.every((p, i) => sent.some(d => d.pet===i));
   const fromForm = sent.some(d => d.form);
+  // a family we know: the newest record we have for each pet (from any stay, any phone)
+  const onFile = i => (s.form.onFile || []).find(x => x.pet===i)?.at;
+  const filed = s.pets.length > 0 && s.pets.every((p, i) => sent.some(d => d.pet===i) || onFile(i));
   return h('div',{class:'card recs'}, h('b',{}, 'Vet or shot records'),
     h('div',{class:'mut', style:'margin-top:4px'}, allIn
       ? 'Thanks, we have '+(s.pets.length > 1 ? 'records for each of your pets' : 'your pet’s records')+(fromForm ? ' from your guest form' : '')+'! You only need to add more if something has changed.'
+      : filed
+      ? 'We have records on file for '+(s.pets.length > 1 ? 'your pets' : s.pets[0].name)+' (dates below). If they’ve had shots since then, please send the new ones here!'
       : !s.form.family
       ? 'If you are new, we will need updated shot records for your pet’s stay. You can upload them here!'+(s.form.sent ? '' : ' (Or add them in the guest form. Either one is fine, no need for both.)')
       : 'Make sure your pet is up to date on their vaccinations and that we have their updated records too! You can upload them here.'),
     s.pets.map((p, i) => { const had = sent.filter(d => d.pet===i), list = RQ.files[i] || [], room = 6 - had.length;
       return h('div',{class:'rpet'}, h('div',{class:'rpn'}, p.name),
-        had.map(d => { const n = had.filter(x => !x.form).indexOf(d), kept = !d.form && d.kind!=='pdf' && SENTRECS[TOKEN]?.at[i+'-'+n];
+        !had.length && onFile(i) && h('div',{class:'rec'}, h('span',{class:'rthumb'}, '✓'), h('span',{class:'rname'}, 'On file'), h('span',{class:'mut'}, 'Last updated '+longDate(onFile(i)))),
+        had.map(d => { const n = had.filter(x => !!x.form===!!d.form).indexOf(d);
+          const kept = d.kind!=='pdf' && SENTRECS[TOKEN]?.at[d.form ? 'f:'+p.name.trim().toLowerCase()+':'+n : i+'-'+n];
           return h('div',{class:'rec'}, kept ? h('button',{class:'rthumb', 'aria-label':'See '+d.name, onclick:()=>{ PEEK = kept; draw(); }}, h('img',{src:kept, alt:''}))
             : h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.kind==='pdf' ? 'PDF' : 'Photo'), h('span',{class:'mut'}, d.form ? 'Sent with your guest form' : 'Sent')); }),
         list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, r.kind==='pdf' ? 'PDF' : 'Photo'),
@@ -719,7 +727,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
     if(/-preview\//.test(location.pathname) && /^demo(-back|-sent|-done)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
       const newOne = TOKEN==='demo' || TOKEN==='demo-done';
       STATUS = {status:newOne ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
-        pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo'},
+        pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo', onFile:TOKEN==='demo-back' ? [{pet:1, at:d(-200)}] : []},
         docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Vet record', kind:'pdf', form:true}]
           : TOKEN==='demo-done' ? [{pet:0, name:'Vet record', kind:'img'}, {pet:0, name:'Vet record', kind:'pdf'}, {pet:1, name:'Vet record', kind:'img'}]
           : TOKEN==='demo-back' ? [{pet:0, name:'Vet record', kind:'img'}] : []};
@@ -728,6 +736,7 @@ const TOKEN = new URLSearchParams(location.search).get('r');
         x.fillStyle = '#fff'; x.fillRect(0, 0, 360, 480); x.fillStyle = color; x.fillRect(0, 0, 360, 90); x.fillStyle = '#222'; x.font = 'bold 28px serif'; x.fillText(title, 30, 150);
         x.font = '18px sans-serif'; ['Rabies', 'DHPP', 'Bordetella'].forEach((t, i) => { x.fillText(t, 40, 210 + i*44); x.fillText('Mar 2026', 220, 210 + i*44); }); return cv.toDataURL('image/jpeg', .8); };
       SENTRECS[TOKEN] = {end:STATUS.end, at:TOKEN==='demo-done' ? {'0-0':sample('Vaccination Record', '#0F766E'), '1-0':sample('Shot Record', '#B45309')}
+        : TOKEN==='demo-sent' ? {'f:biscuit:0':sample('Vet Record', '#7C3AED')}
         : TOKEN==='demo-back' ? {'0-0':sample('Rabies Certificate', '#1D4ED8')} : {}};
       refresh = async () => {};
       sendRecs = async () => { RQ.busy = true; draw();

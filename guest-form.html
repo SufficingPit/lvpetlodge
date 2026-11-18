@@ -633,7 +633,19 @@ const reasonText = (r, what) => !r ? oops(what) : /human check/i.test(r) ? ROBOT
 const thrownText = (e, what) => /didn.t load/.test(e && e.message || '') ? ROBOT_LOAD : /human check/i.test(e && e.message || '') ? ROBOT_FAIL
   : (navigator.onLine===false || e instanceof TypeError) ? offline(what) : oops(what);
 // after the form is in: send each record to its one-time upload link (a file already there counts as sent)
-let UPS = null;
+let UPS = null, REQEND = null;
+// a photo sent with a form opened from a request page: keep a small copy on this phone, so the request
+// page can show it next to "Sent with your guest form" (same store and rules as the request page, book.html)
+async function keepForReq(u){
+  if(!REQ || !REQEND || u.kind!=='img') return;
+  const m = /\/\d+-(\d+)\.jpg$/.exec(u.path || ''); if(!m) return;
+  try {
+    const small = await shrinkImage(u.blob, 480), url = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(small); });
+    const all = JSON.parse(localStorage.getItem('lvpl-sent-recs')) || {}, e = all[REQ] ||= {end:REQEND, at:{}};
+    e.end = REQEND; e.at['f:'+u.pet.toLowerCase()+':'+m[1]] = url;
+    localStorage.setItem('lvpl-sent-recs', JSON.stringify(all));
+  } catch(e) {}
+}
 async function uploadRecs(){
   UPS.busy = true; UPS.failed = 0; draw();
   for(const u of UPS.list){
@@ -644,6 +656,7 @@ async function uploadRecs(){
       const res = await fetch(link.url, {method:'PUT', headers:{'Content-Type':u.kind==='pdf' ? 'application/pdf' : 'image/jpeg', 'x-upsert':'false'}, body:u.blob});
       if(!res.ok){ const t = await res.text().catch(() => ''); if(!(res.status===409 || /duplicate|already exists/i.test(t))) throw new Error(t); }
       u.sent = true;
+      await keepForReq(u);
     } catch(e){ UPS.failed++; }
   }
   UPS.busy = false; draw();
@@ -660,7 +673,7 @@ async function send(){
     const data = {...paperData(), key:undefined, agree:MODE!=='pets', mode:MODE,
       pets:F.pets.map((p, i) => ({...p, meds:(p.meds || []).filter(m => [m.name, m.dose, m.freq, m.instr].some(x => (x || '').trim())),
         docs:F.key && recsOf(p).length ? recsOf(p).map((r, j) => { const path = 'forms/'+F.key+'/'+i+'-'+j+(r.kind==='pdf' ? '.pdf' : '.jpg');
-          ups.push({blob:r.blob, kind:r.kind, path}); return {name:r.name, kind:r.kind, path}; }) : undefined}))};
+          ups.push({blob:r.blob, kind:r.kind, path, pet:p.name.trim()}); return {name:r.name, kind:r.kind, path}; }) : undefined}))};
     if(JSON.stringify({key:F.key, data}).length > 59000){
       SENDING = false; ERR = 'Sorry, your form came out too large to send, which shouldn’t happen. Your answers are still here. Please try signing again, and if it still won’t send, call or text us at '+CALL_TEXT+'.'; draw(); return; }
     const res = await fetch(SEND_URL, {method:'POST', headers:{apikey:SEND_KEY, Authorization:'Bearer '+SEND_KEY, 'Content-Type':'application/json'},
@@ -686,7 +699,7 @@ if(new URLSearchParams(location.search).has('blank')){
   document.getElementById('paper').innerHTML = guestPaper(null, '');
   document.fonts.ready.then(() => guestPaperFit(document.getElementById('paper')));
 } else (async () => {
-  if(REQ){ try { const st = await rpc('request_status', {p_token:REQ}); NEED = st && st.form ? {...st.form, pets:st.pets} : null; } catch(e) {}
+  if(REQ){ try { const st = await rpc('request_status', {p_token:REQ}); NEED = st && st.form ? {...st.form, pets:st.pets} : null; REQEND = st && st.end || null; } catch(e) {}
     // already sent from this request: "Update it" opens what they sent (kept on the device) to change
     if(NEED) MODE = NEED.sent || NEED.update ? 'update' : NEED.family && (NEED.newPets || []).length ? 'pets' : NEED.family ? 'update' : 'new'; }
   startForm(); draw();
