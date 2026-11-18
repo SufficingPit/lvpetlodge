@@ -95,7 +95,9 @@ body{overflow-x:clip}
 .recs b{display:block;font-size:calc(17px / var(--k,1))}
 .recs .mut{margin:calc(2px / var(--k,1)) 0 calc(10px / var(--k,1));font-size:calc(14px / var(--k,1))}
 .recs .rec{display:flex;align-items:center;gap:calc(10px / var(--k,1));padding:calc(6px / var(--k,1)) 0;border-top:1px solid var(--line)}
-.recs .rec span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recs .rec .rthumb{width:calc(44px / var(--k,1));height:calc(44px / var(--k,1));flex:none;border-radius:calc(8px / var(--k,1));border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:calc(12px / var(--k,1));font-weight:700;color:#5B6472}
+.recs .rec .rthumb img{width:100%;height:100%;object-fit:cover}
+.recs .rec .rname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .recs .lk{font-size:calc(15px / var(--k,1));min-height:calc(36px / var(--k,1))}
 .recs label.b2{display:flex;align-items:center;justify-content:center;margin-top:calc(8px / var(--k,1));min-height:calc(46px / var(--k,1));font-size:calc(16px / var(--k,1));border-radius:calc(12px / var(--k,1));cursor:pointer}
 .recs .err{margin:calc(8px / var(--k,1)) 0 0;font-size:calc(14px / var(--k,1))}
@@ -199,7 +201,7 @@ async function addRecs(p, files){
     if(!pdf){ try { blob = await shrinkImage(f); } catch(e){ RECERR = {pet:p, msg:'Couldn’t read that photo. Try another one.'}; continue; } }
     if(blob.size > 10e6){ RECERR = {pet:p, msg:'That file is too big (over 10 MB).'}; continue; }
     const name = pdf ? f.name.replace(/\.pdf$/i,'').replace(/_+/g,' ').trim().slice(0, 60) || 'Vet record' : 'Vet record';
-    list.push({name, kind:pdf ? 'pdf' : 'img', blob});
+    list.push({name, kind:pdf ? 'pdf' : 'img', blob, url:pdf ? '' : URL.createObjectURL(blob)});
   }
   draw();
 }
@@ -208,8 +210,8 @@ function recsBox(p){
   return h('div',{class:'recs'},
     h('b',{}, 'Vet or shot records'),
     h('p',{class:'mut'}, 'Optional. A photo or PDF of '+(nm ? nm+'’s' : 'their')+' vaccine record, so you don’t have to bring it.'),
-    list.map((r, j) => h('div',{class:'rec'}, h('span',{}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
-      h('button',{type:'button', class:'lk bad', onclick:()=>{ list.splice(j, 1); RECERR = null; draw(); }}, 'Remove'))),
+    list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
+      h('button',{type:'button', class:'lk bad', onclick:()=>{ if(r.url) URL.revokeObjectURL(r.url); list.splice(j, 1); RECERR = null; draw(); }}, 'Remove'))),
     list.length < MAX_RECS && h('label',{class:'b2'}, list.length ? '+ Add another' : '+ Add photo or PDF',
       h('input',{type:'file', accept:'image/*,application/pdf', multiple:true, style:'display:none', onchange:e => addRecs(p, [...e.target.files])})),
     RECERR && RECERR.pet===p && h('p',{class:'err'}, RECERR.msg));
