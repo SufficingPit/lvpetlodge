@@ -4,17 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Little Village Pet Lodge</title>
-<meta name="description" content="Pet boarding north of Funk, Nebraska. Dogs, cats and most small pets. Check open spots and request a stay online.">
+<meta name="description" content="Pet boarding in the country north of Funk, Nebraska, for dogs, cats and most small pets. See open spots, prices and hours, and request a stay online.">
 <meta name="theme-color" content="#F3FAF8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101716" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Little Village Pet Lodge">
-<meta property="og:description" content="Pet boarding north of Funk, Nebraska. Request a stay online.">
+<meta property="og:description" content="Pet boarding in the country north of Funk, Nebraska, for dogs, cats and most small pets. See open spots, prices and hours, and request a stay online.">
 <meta property="og:image" content="https://lvpetlodge.com/img/g8.jpg">
 <meta property="og:image:alt" content="Clio, a blue merle Aussie, smiling in the kennel hallway">
 <meta property="og:url" content="https://lvpetlodge.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://lvpetlodge.com/">
+<!-- business details for search engines (hours are left out: they change in the app's booking settings) -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","additionalType":"https://en.wikipedia.org/wiki/Animal_boarding",
+ "name":"Little Village Pet Lodge","description":"Pet boarding in the country north of Funk, Nebraska, for dogs, cats and most small pets. See open spots, prices and hours, and request a stay online.",
+ "url":"https://lvpetlodge.com/","image":"https://lvpetlodge.com/img/g8.jpg","logo":"https://lvpetlodge.com/img/logo.png",
+ "telephone":"+1-308-233-2652","email":"littlevillagepetlodge@outlook.com",
+ "address":{"@type":"PostalAddress","streetAddress":"11841 740 Road","addressLocality":"Funk","addressRegion":"NE","postalCode":"68940","addressCountry":"US"},
+ "geo":{"@type":"GeoCoordinates","latitude":40.5547,"longitude":-99.29015},
+ "sameAs":["https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/"]}
+</script>
 <link rel="icon" type="image/png" href="img/icon-192.png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <style>
@@ -163,7 +173,7 @@ footer a{color:var(--mut)}
   <div class="pic"><img id="heroImg" alt="" width="1600" height="1200"><span class="tag" id="heroTag"></span></div>
 </div>
 <div class="wrap">
-  <div class="hours" id="hours">
+  <div class="hours" id="hours" data-nosnippet>
     <h3>Drop-off &amp; pickup</h3>
     <div class="hrs" id="hoursList"><div class="hr-row"><b>Mon–Sat</b><span class="hr-t">8–9:30 AM</span><span class="hr-t">4–5:30 PM</span></div><div class="hr-row"><b>Sun</b><span class="hr-t">5–6 PM</span></div></div>
     <div class="mut" id="feeNote">Other times have a $10 fee.</div>
