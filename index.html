@@ -121,6 +121,18 @@ main,footer{overflow-wrap:anywhere}
 .notice{background:var(--pink);color:#fff;font-weight:700;text-align:center;padding:10px 0}
 .notice .wrap{white-space:pre-wrap}
 .fun{font-weight:800;font-size:22px;color:var(--pri);text-align:center;margin-top:10px;letter-spacing:.02em}
+/* treat mixes */
+.treats{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.treat{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.treat .tp{aspect-ratio:4/3;background:var(--soft);color:var(--pri);display:grid;place-items:center;padding:0;border:0;width:100%;cursor:zoom-in}
+.treat .tp img{width:100%;height:100%;object-fit:cover}
+.treat .tp svg{width:56px;height:56px;opacity:.5}
+.treat .tb{padding:16px 20px 20px}
+.treat h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 6px}
+.treat h3 b{color:var(--pri);white-space:nowrap;flex:none}
+.treat .out{display:inline-block;background:var(--pink);color:#fff;font-weight:700;font-size:13px;padding:2px 10px;border-radius:999px;margin-bottom:8px}
+.treat.gone .tp{filter:grayscale(1);opacity:.7}
+.treat p:last-child{margin:0}
 .groom{background:var(--soft);box-shadow:none;border:2px dashed var(--mint);text-align:center;padding:28px 22px}
 .groom #groomer{max-width:40em;margin:0 auto}
 .soon{display:inline-block;background:var(--pink);color:#fff;font-weight:700;font-size:13px;padding:3px 12px;border-radius:999px;margin-bottom:10px}
@@ -132,7 +144,7 @@ footer a{color:var(--mut)}
 <header><div class="wrap bar">
   <a class="brand" href="#top"><img src="img/logo.png" alt="" width="42" height="42"><span>Little Village<small>Pet Lodge</small></span></a>
   <nav aria-label="Sections">
-    <a href="#boarding">Boarding</a><a href="#pricing">Pricing</a><a href="#gallery">Gallery</a><a href="#about">About</a><a href="#grooming">Grooming</a><a href="#contact">Contact</a><a href="#directions">Directions</a>
+    <a href="#boarding">Boarding</a><a href="#pricing">Pricing</a><a href="#treats" id="treatsNav" hidden>Treats</a><a href="#gallery">Gallery</a><a href="#about">About</a><a href="#grooming">Grooming</a><a href="#contact">Contact</a><a href="#directions">Directions</a>
   </nav>
 </div></header>
 
@@ -176,6 +188,12 @@ footer a{color:var(--mut)}
     <div class="card"><h3>Extras</h3><div id="extras"></div><p class="mut" style="margin:12px 0 0;font-size:15px" id="payNote"></p></div>
   </div>
   <p style="margin:22px 0 0;text-align:center"><a class="btn" href="book.html">Check open spots</a></p>
+</div></section>
+
+<section id="treats" hidden><div class="wrap">
+  <h2>Treat mixes</h2>
+  <p class="mut" id="treatsIntro"></p>
+  <div class="treats" id="treatList"></div>
 </div></section>
 
 <section id="gallery"><div class="wrap">
@@ -242,7 +260,7 @@ const API = 'https://hmkhdmtededcxsjnlqxz.supabase.co/rest/v1/rpc/', KEY = 'sb_p
 const rpc = fn => fetch(API+fn, {method:'POST', headers:{apikey:KEY, 'Content-Type':'application/json'}, body:'{}'}).then(r => r.ok ? r.json() : null);
 // The text, prices and photos are edited in the kennel app (Settings > Website). This copy
 // is what shows until that loads, or if it can't. Keep it the same as defaultSite() in the app.
-const DEFAULT = {"v": 1, "notice": "", "headline": "Lodging for your pets while you’re away from home", "intro": "A safe, friendly place in the country north of Funk, Nebraska, for dogs, cats, and most any small pet with fur, feathers or scales.", "hero": "lineup", "heroTag": "", "boardIntro": "Enjoy your vacation or time away from home without worrying about your fur baby.", "cards": [{"title": "Dogs", "text": "We have 16 dog kennels. Half are 4×8 feet and half are 3×6 feet. The bigger ones go first come, first served, or to dogs sharing a kennel.\n\nDogs are let out three times a day to do their business and play in a large fenced-in yard.", "vax": "Vaccines required: Rabies, Canine Distemper, Bordetella"}, {"title": "Cats and ferrets", "text": "Cats get their own cat condo in the lobby. A condo holds up to 2 large cats. A kennel in the dog area is available if the condo is taken.\n\nFerrets are housed the same as cats if no cage or enclosure is provided.", "vax": "Vaccines required for cats: Rabies, FVRCP, Feline Leukemia"}, {"title": "Other pets", "text": "Birds, reptiles, rabbits and other small pets are welcome. Please bring their cage or enclosure (or a temporary one). They stay in the lobby or kennel area depending on space.", "vax": "Vaccines: up to date where applicable"}], "vaxNote": "All pets must have up-to-date vaccinations appropriate for their species. This keeps not only other pets healthy, but yours too when they stay!", "prices": [{"label": "Dogs", "sub": "per dog", "price": "$25"}, {"label": "Cats", "sub": "per cat", "price": "$15"}, {"label": "Other pets", "sub": "per pet", "price": "$10"}], "shareNote": "Two pets sharing a kennel, condo or enclosure: $2 off each. For example, two dogs in one kennel are $23 each, $46 a night.", "extras": [{"label": "Late pickup, 4 PM or later", "sub": "No fee on Sundays", "price": "+$5"}, {"label": "Drop-off or pickup outside hours", "price": "+$10"}, {"label": "Medications given", "price": "+$2"}], "payNote": "We take cards through Square. Card payments have a 2.6% fee to cover Square’s charge.", "about": "Little Village Pet Lodge is a pet boarding facility in rural Nebraska north of Funk. We accept most any small pet, not just dogs and cats! We provide a safe place to house your fur, feather, or scaly babies when you are away from home for whatever reason.\n\nOwner Ashleigh Jauken operates the facility mostly by herself, but now has three young sons in tow. You’ll probably see Kaleb, Kolby, Kolt, or all three as she works. She has always loved all animals and has experience with many pets throughout her life. She went to Nebraska College of Technical Agriculture and studied to become a vet tech. Although she didn’t quite make it to a licensed vet tech, she still graduated with a Degree of Applied Animal Science.\n\nAshleigh came up with the name Little Village Pet Lodge from the facility’s location. It’s just north of Funk, Nebraska, which is officially called the Village of Funk. “I thought it would be fun to call my business Little Village because of its location near Funk. Plus, there are hopefully going to be many different animals staying there, like a village would, so why not Little Village?” Ashleigh says. The Lodge part of the name also comes from where the property is. “When you think lodge, you usually think of a place out in the country, and my little pet village is out in the country, so it made perfect sense to say lodge at the end instead of boarding. And that’s how Little Village Pet Lodge was named!”", "groomer": "Do you or someone you know groom animals? Need somewhere to operate? Little Village is looking for a groomer to rent space here at the lodge! Call, text, or email for more information!", "phone": "(308) 233-2652", "email": "littlevillagepetlodge@outlook.com", "facebook": "https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/", "address": "11841 740 Road, Funk, NE 68940", "directions": "The first mile of 740 Rd west of T Rd is a minimum maintenance road. When it’s wet, or has been, please use 741 Rd or 739 Rd instead.\n\nWe’re the big metal building with the green roof and trim.", "photos": [{"id": "g1", "src": "img/g1.jpg", "sm": "img/g1-sm.jpg", "cap": "Facility building and parking"}, {"id": "g2", "src": "img/g2.jpg", "sm": "img/g2-sm.jpg", "cap": "Entrance"}, {"id": "g3", "src": "img/g3.jpg", "sm": "img/g3-sm.jpg", "cap": "Lobby"}, {"id": "g4", "src": "img/g4.jpg", "sm": "img/g4-sm.jpg", "cap": "Cat condos in the lobby"}, {"id": "g5", "src": "img/g5.jpg", "sm": "img/g5-sm.jpg", "cap": "A cat condo up close"}, {"id": "g6", "src": "img/g6.jpg", "sm": "img/g6-sm.jpg", "cap": "Kennel room"}, {"id": "g7", "src": "img/g7.jpg", "sm": "img/g7-sm.jpg", "cap": "Occupied kennel"}, {"id": "g8", "src": "img/g8.jpg", "sm": "img/g8-sm.jpg", "cap": "I’m Clio"}, {"id": "g9", "src": "img/g9.jpg", "sm": "img/g9-sm.jpg", "cap": "Being let out"}, {"id": "g10", "src": "img/g10.jpg", "sm": "img/g10-sm.jpg", "cap": "In the yard with a friend"}], "aboutPhoto": "lookup", "aboutCap": "LOOK UP THERE!"};
+const DEFAULT = {"v": 1, "notice": "", "headline": "Lodging for your pets while you’re away from home", "intro": "A safe, friendly place in the country north of Funk, Nebraska, for dogs, cats, and most any small pet with fur, feathers or scales.", "hero": "lineup", "heroTag": "", "boardIntro": "Enjoy your vacation or time away from home without worrying about your fur baby.", "cards": [{"title": "Dogs", "text": "We have 16 dog kennels. Half are 4×8 feet and half are 3×6 feet. The bigger ones go first come, first served, or to dogs sharing a kennel.\n\nDogs are let out three times a day to do their business and play in a large fenced-in yard.", "vax": "Vaccines required: Rabies, Canine Distemper, Bordetella"}, {"title": "Cats and ferrets", "text": "Cats get their own cat condo in the lobby. A condo holds up to 2 large cats. A kennel in the dog area is available if the condo is taken.\n\nFerrets are housed the same as cats if no cage or enclosure is provided.", "vax": "Vaccines required for cats: Rabies, FVRCP, Feline Leukemia"}, {"title": "Other pets", "text": "Birds, reptiles, rabbits and other small pets are welcome. Please bring their cage or enclosure (or a temporary one). They stay in the lobby or kennel area depending on space.", "vax": "Vaccines: up to date where applicable"}], "vaxNote": "All pets must have up-to-date vaccinations appropriate for their species. This keeps not only other pets healthy, but yours too when they stay!", "prices": [{"label": "Dogs", "sub": "per dog", "price": "$25"}, {"label": "Cats", "sub": "per cat", "price": "$15"}, {"label": "Other pets", "sub": "per pet", "price": "$10"}], "shareNote": "Two pets sharing a kennel, condo or enclosure: $2 off each. For example, two dogs in one kennel are $23 each, $46 a night.", "extras": [{"label": "Late pickup, 4 PM or later", "sub": "No fee on Sundays", "price": "+$5"}, {"label": "Drop-off or pickup outside hours", "price": "+$10"}, {"label": "Medications given", "price": "+$2"}], "payNote": "We take cards through Square. Card payments have a 2.6% fee to cover Square’s charge.", "about": "Little Village Pet Lodge is a pet boarding facility in rural Nebraska north of Funk. We accept most any small pet, not just dogs and cats! We provide a safe place to house your fur, feather, or scaly babies when you are away from home for whatever reason.\n\nOwner Ashleigh Jauken operates the facility mostly by herself, but now has three young sons in tow. You’ll probably see Kaleb, Kolby, Kolt, or all three as she works. She has always loved all animals and has experience with many pets throughout her life. She went to Nebraska College of Technical Agriculture and studied to become a vet tech. Although she didn’t quite make it to a licensed vet tech, she still graduated with a Degree of Applied Animal Science.\n\nAshleigh came up with the name Little Village Pet Lodge from the facility’s location. It’s just north of Funk, Nebraska, which is officially called the Village of Funk. “I thought it would be fun to call my business Little Village because of its location near Funk. Plus, there are hopefully going to be many different animals staying there, like a village would, so why not Little Village?” Ashleigh says. The Lodge part of the name also comes from where the property is. “When you think lodge, you usually think of a place out in the country, and my little pet village is out in the country, so it made perfect sense to say lodge at the end instead of boarding. And that’s how Little Village Pet Lodge was named!”", "groomer": "Do you or someone you know groom animals? Need somewhere to operate? Little Village is looking for a groomer to rent space here at the lodge! Call, text, or email for more information!", "phone": "(308) 233-2652", "email": "littlevillagepetlodge@outlook.com", "facebook": "https://www.facebook.com/Little-Village-Pet-Lodge-109671294113263/", "address": "11841 740 Road, Funk, NE 68940", "directions": "The first mile of 740 Rd west of T Rd is a minimum maintenance road. When it’s wet, or has been, please use 741 Rd or 739 Rd instead.\n\nWe’re the big metal building with the green roof and trim.", "photos": [{"id": "g1", "src": "img/g1.jpg", "sm": "img/g1-sm.jpg", "cap": "Facility building and parking"}, {"id": "g2", "src": "img/g2.jpg", "sm": "img/g2-sm.jpg", "cap": "Entrance"}, {"id": "g3", "src": "img/g3.jpg", "sm": "img/g3-sm.jpg", "cap": "Lobby"}, {"id": "g4", "src": "img/g4.jpg", "sm": "img/g4-sm.jpg", "cap": "Cat condos in the lobby"}, {"id": "g5", "src": "img/g5.jpg", "sm": "img/g5-sm.jpg", "cap": "A cat condo up close"}, {"id": "g6", "src": "img/g6.jpg", "sm": "img/g6-sm.jpg", "cap": "Kennel room"}, {"id": "g7", "src": "img/g7.jpg", "sm": "img/g7-sm.jpg", "cap": "Occupied kennel"}, {"id": "g8", "src": "img/g8.jpg", "sm": "img/g8-sm.jpg", "cap": "I’m Clio"}, {"id": "g9", "src": "img/g9.jpg", "sm": "img/g9-sm.jpg", "cap": "Being let out"}, {"id": "g10", "src": "img/g10.jpg", "sm": "img/g10-sm.jpg", "cap": "In the yard with a friend"}], "aboutPhoto": "lookup", "aboutCap": "LOOK UP THERE!", "treatsIntro": "Make your own dog treats at home with our DIY mixes. Ask for one when you drop off or pick up, and pay when you get it.", "treats": []};
 const $ = id => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
 const paras = (box, text) => box.replaceChildren(...String(text||'').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean).map(t => el('p', null, t)));
@@ -291,6 +309,19 @@ function draw(c){
   if(ap){ $('aboutImg').src = ap.src; $('aboutImg').alt = ap.cap || ''; }
   $('aboutCap').textContent = c.aboutCap || ''; $('aboutCap').hidden = !c.aboutCap;
   paras($('aboutText'), c.about);
+  // treat mixes for sale (picked up and paid for at the lodge); hidden until there's one
+  const T = (Array.isArray(c.treats) ? c.treats : []).filter(t => t && t.name);
+  $('treats').hidden = $('treatsNav').hidden = !T.length;
+  $('treatsIntro').textContent = c.treatsIntro || ''; $('treatsIntro').hidden = !c.treatsIntro;
+  $('treatList').replaceChildren(...T.map(t => { const d = el('div', 'card treat'+(t.out ? ' gone' : ''));
+    const tp = el(t.src ? 'button' : 'div', 'tp');
+    if(t.src){ const im = el('img'); im.src = t.sm || t.src; im.alt = t.name; im.loading = 'lazy'; im.width = 480; im.height = 360; tp.append(im);
+      tp.setAttribute('aria-label', 'Open photo: '+t.name); tp.onclick = () => { PHOTOS = [{src:t.src, cap:t.name}]; show(0); }; }
+    else tp.innerHTML = ICON[0];
+    const b = el('div', 'tb'), h3 = el('h3', null, t.name); if(t.price) h3.append(el('b', null, t.price));
+    b.append(h3); if(t.out) b.append(el('span', 'out', 'Sold out for now'));
+    const dsc = el('div'); paras(dsc, t.desc); b.append(dsc);
+    d.append(tp, b); return d; }));
   $('grooming').hidden = !c.groomer; paras($('groomer'), c.groomer);
   const digits = c.phone.replace(/\D/g,''), tel = '+1' + digits.slice(-10);
   document.querySelectorAll('.telLink').forEach(a => { a.href = 'tel:'+tel; const s = a.querySelector('span'); s.textContent = (s.dataset.pre || '') + c.phone; });
@@ -303,13 +334,18 @@ function draw(c){
 }
 let CONTENT = DEFAULT, INFO = null;
 draw(CONTENT);
-rpc('site_content').then(c => { if(c && c.v){ CONTENT = {...DEFAULT, ...c}; draw(CONTENT); } }).catch(() => {});
+const SAMPLE_TREATS = location.pathname.includes('-preview/') && /[?&]treats\b/.test(location.search) && [
+  {name:'Peanut Butter Pumpkin', price:'$8', desc:'Oat flour, pumpkin and peanut butter powder. Add 1 egg and ½ cup water, roll out and bake. Makes about 30 small treats.'},
+  {name:'Bacon Cheddar Bites', price:'$9', desc:'A savory mix with real cheddar and bacon bits. Add 1 egg and ⅓ cup water. Makes about 40 bite-size treats.'},
+  {name:'Apple Cinnamon', price:'$8', desc:'Dried apple and a little cinnamon. Add ½ cup applesauce. Makes about 25 treats.', out:true}];
+rpc('site_content').then(c => { if(c && c.v){ CONTENT = {...DEFAULT, ...c}; if(SAMPLE_TREATS) CONTENT.treats = SAMPLE_TREATS; draw(CONTENT); } }).catch(() => {});
+if(SAMPLE_TREATS){ CONTENT = {...CONTENT, treats:SAMPLE_TREATS}; draw(CONTENT); }
 
 // full-screen photo viewer
 const lb = $('lb'), lbImg = lb.querySelector('img'), lbCap = lb.querySelector('p');
 let at = 0;
-function show(i){ at = (i + PHOTOS.length) % PHOTOS.length; lbImg.src = PHOTOS[at].src; lbImg.alt = PHOTOS[at].cap || ''; lbCap.textContent = PHOTOS[at].cap || ''; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
-function hide(){ lb.classList.remove('on'); document.body.style.overflow = ''; }
+function show(i){ at = (i + PHOTOS.length) % PHOTOS.length; lbImg.src = PHOTOS[at].src; lbImg.alt = PHOTOS[at].cap || ''; lbCap.textContent = PHOTOS[at].cap || ''; lb.querySelector('.pv').hidden = lb.querySelector('.nx').hidden = PHOTOS.length < 2; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
+function hide(){ PHOTOS = CONTENT.photos; lb.classList.remove('on'); document.body.style.overflow = ''; }
 lb.querySelector('.x').onclick = hide; lb.querySelector('.pv').onclick = () => show(at-1); lb.querySelector('.nx').onclick = () => show(at+1);
 lb.onclick = e => { if(e.target===lb) hide(); };
 addEventListener('keydown', e => { if(!lb.classList.contains('on')) return; if(e.key==='Escape') hide(); if(e.key==='ArrowLeft') show(at-1); if(e.key==='ArrowRight') show(at+1); });
