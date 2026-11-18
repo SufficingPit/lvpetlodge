@@ -609,7 +609,7 @@ function recsCard(s){
       : 'Make sure your pet is up to date on their vaccinations and that we have their updated records too! You can upload them here.'),
     s.pets.map((p, i) => { const had = sent.filter(d => d.pet===i), list = RQ.files[i] || [], room = 6 - had.length;
       return h('div',{class:'rpet'}, h('div',{class:'rpn'}, p.name),
-        had.map(d => h('div',{class:'rec'}, h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.name), h('span',{class:'mut'}, 'Sent'))),
+        had.map(d => h('div',{class:'rec'}, h('span',{class:'rthumb'}, d.kind==='pdf' ? 'PDF' : '✓'), h('span',{class:'rname'}, d.name), h('span',{class:'mut'}, d.form ? 'Sent with your guest form' : 'Sent'))),
         list.map((r, j) => h('div',{class:'rec'}, h('span',{class:'rthumb'}, r.url ? h('img',{src:r.url, alt:''}) : 'PDF'), h('span',{class:'rname'}, (r.kind==='pdf' ? 'PDF: ' : 'Photo: ')+r.name),
           !RQ.busy && h('button',{class:'lk bad', onclick:()=>{ if(r.url) URL.revokeObjectURL(r.url); list.splice(j, 1); RQ.err = ''; draw(); }}, 'Remove'))),
         list.length < room && !RQ.busy && h('label',{class:'b2'}, had.length || list.length ? '+ Add another' : '+ Add photo or PDF',
