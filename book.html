@@ -713,12 +713,22 @@ const TOKEN = new URLSearchParams(location.search).get('r');
 (async () => {
   if(TOKEN){
     draw();
-    // the preview copy only: ?r=demo (new customer), demo-back (returning) or demo-sent (guest form sent with records)
-    // shows a made-up request to look at; nothing sends
-    if(/-preview\//.test(location.pathname) && /^demo(-back|-sent)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
-      STATUS = {status:TOKEN==='demo' ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
+    // the preview copy only: a made-up request to look at; nothing sends. ?r=demo (new customer, nothing yet),
+    // demo-done (new customer, sent from this page), demo-sent (records came with the guest form),
+    // demo-back (returning customer, one pet sent from this page)
+    if(/-preview\//.test(location.pathname) && /^demo(-back|-sent|-done)?$/.test(TOKEN)){ const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return ymdOf(x); };
+      const newOne = TOKEN==='demo' || TOKEN==='demo-done';
+      STATUS = {status:newOne ? 'pending' : 'approved', start:d(7), end:d(10), arr:'09:00', pick:'17:00', reply:null,
         pets:[{name:'Biscuit', species:'dog'},{name:'Clio', species:'dog'}], form:{family:TOKEN==='demo-back', sent:TOKEN!=='demo'},
-        docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Vet record', kind:'pdf', form:true}] : []};
+        docs:TOKEN==='demo-sent' ? [{pet:0, name:'Vet record', kind:'img', form:true}, {pet:1, name:'Vet record', kind:'pdf', form:true}]
+          : TOKEN==='demo-done' ? [{pet:0, name:'Vet record', kind:'img'}, {pet:0, name:'Vet record', kind:'pdf'}, {pet:1, name:'Vet record', kind:'img'}]
+          : TOKEN==='demo-back' ? [{pet:0, name:'Vet record', kind:'img'}] : []};
+      // made-up photos for the ones "sent" from this page, as if this phone had kept them
+      const sample = (title, color) => { const cv = document.createElement('canvas'); cv.width = 360; cv.height = 480; const x = cv.getContext('2d');
+        x.fillStyle = '#fff'; x.fillRect(0, 0, 360, 480); x.fillStyle = color; x.fillRect(0, 0, 360, 90); x.fillStyle = '#222'; x.font = 'bold 28px serif'; x.fillText(title, 30, 150);
+        x.font = '18px sans-serif'; ['Rabies', 'DHPP', 'Bordetella'].forEach((t, i) => { x.fillText(t, 40, 210 + i*44); x.fillText('Mar 2026', 220, 210 + i*44); }); return cv.toDataURL('image/jpeg', .8); };
+      SENTRECS[TOKEN] = {end:STATUS.end, at:TOKEN==='demo-done' ? {'0-0':sample('Vaccination Record', '#0F766E'), '1-0':sample('Shot Record', '#B45309')}
+        : TOKEN==='demo-back' ? {'0-0':sample('Rabies Certificate', '#1D4ED8')} : {}};
       refresh = async () => {};
       sendRecs = async () => { RQ.busy = true; draw();
         for(const [i, l] of Object.entries(RQ.files)) for(const r of l){ const n = STATUS.docs.filter(d => d.pet===+i && !d.form).length;
